@@ -36,7 +36,7 @@ export default function EsercizioPage() {
   function handleComplete(punteggio: number) { setScore(punteggio); setStato("risultato"); }
 
   const scoreColor = score >= 80 ? COLORS.success : score >= 50 ? COLORS.streak : "#C62828";
-  const scoreMsg = score === 100 ? "Perfetto!" : score >= 80 ? "Ottimo lavoro!" : score >= 60 ? "Bravo!" : "Continua ad allenarti!";
+  const scoreMsg = score === 100 ? "Perfetto!" : score >= 80 ? "Ottimo lavoro!" : score >= 60 ? "Ottimo!" : "Continua ad allenarti!";
   const scoreEmoji = score === 100 ? "🎉" : score >= 80 ? "🌟" : score >= 60 ? "👍" : "💪";
 
   return (

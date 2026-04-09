@@ -22,9 +22,9 @@ function channelConfig(canale: MagicLinkCanale) {
     };
     case "email": return {
       headerBg:        `${COLORS.primary}18`,
-      headerLabel:     "EMAIL · ORA",
+      headerLabel:     "BRAINTRAINER · ORA",
       headerIcon:      <Mail width={14} height={14} strokeWidth={1.5} color={COLORS.primary} />,
-      bubbleBg:        "#DCF8C6",
+      bubbleBg:        "#FFFFFF",
       bubbleBorder:    COLORS.primary,
       linkColor:       COLORS.primary,
       messagePrefix:   "",
@@ -34,7 +34,7 @@ function channelConfig(canale: MagicLinkCanale) {
       headerBg:        `${COLORS.primary}18`,
       headerLabel:     "SMS · ORA",
       headerIcon:      <MessageText width={14} height={14} strokeWidth={1.5} color={COLORS.primary} />,
-      bubbleBg:        "#DCF8C6",
+      bubbleBg:        "#FFFFFF",
       bubbleBorder:    COLORS.primary,
       linkColor:       COLORS.primary,
       messagePrefix:   "BrainTrainer:",

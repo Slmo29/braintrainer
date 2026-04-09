@@ -188,9 +188,9 @@ export default function OnboardingRegistratiPage() {
             <div style={{ backgroundColor: `${COLORS.primary}12`, borderRadius: 10, padding: "10px 14px" }}>
               <p style={{ fontSize: 13, color: "#5A5A72", margin: 0 }}>
                 {canale === "email"
-                  ? "Ecco come apparirà l'email:"
+                  ? "Ecco come apparirà l'email sul tuo telefono:"
                   : canale === "whatsapp"
-                  ? "Ecco come apparirà il messaggio WhatsApp sul tuo telefono:"
+                  ? "Ecco come apparirà il messaggio sul tuo telefono:"
                   : "Ecco come apparirà l'SMS sul tuo telefono:"}
               </p>
             </div>

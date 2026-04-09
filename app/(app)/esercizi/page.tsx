@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Card from "@/components/ui/card";
 import { mockEsercizi, mockCategorie } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
 import { Timer } from "iconoir-react";
+import { useUserStore } from "@/lib/store";
+import { PausaAttivaModal } from "@/components/ui/pausa-attiva-modal";
+
+const LIMITE_ESERCIZI_GIORNO = 5;
 
 const TABS = [
   { id: "memoria",    label: "Memoria" },
@@ -15,9 +19,22 @@ const TABS = [
 ];
 
 export default function EserciziPage() {
+  const router = useRouter();
+  const { nome, isGuest, eserciziFattiOggi, setPausaAttivaRichiesta } = useUserStore();
   const [tab, setTab] = useState("memoria");
+  const [mostraPausa, setMostraPausa] = useState(false);
+  const [esercizioTarget, setEsercizioTarget] = useState<string | null>(null);
 
   const eserciziFiltrati = mockEsercizi.filter((e) => e.categoria_id === tab);
+
+  function handleClickEsercizio(id: string) {
+    if (eserciziFattiOggi >= LIMITE_ESERCIZI_GIORNO) {
+      setEsercizioTarget(id);
+      setMostraPausa(true);
+    } else {
+      router.push(`/esercizi/${id}`);
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -29,8 +46,8 @@ export default function EserciziPage() {
         <div className="flex mt-4 overflow-x-auto scrollbar-none -mx-4 px-4">
           {TABS.map((t) => {
             const active = tab === t.id;
-            const cc = t.id !== "tutti" ? CATEGORIA_COLORS[t.id] : null;
-            const cat = t.id !== "tutti" ? mockCategorie.find((c) => c.id === t.id) : null;
+            const cc = CATEGORIA_COLORS[t.id];
+            const cat = mockCategorie.find((c) => c.id === t.id);
             return (
               <button
                 key={t.id}
@@ -62,13 +79,13 @@ export default function EserciziPage() {
           const cc = cat ? CATEGORIA_COLORS[cat.id] : null;
 
           return (
-            <Link key={esercizio.id} href={`/esercizi/${esercizio.id}`}>
-              <Card
-                padding="md"
-                className="active:scale-[0.98] transition-transform"
-              >
+            <button
+              key={esercizio.id}
+              className="text-left w-full"
+              onClick={() => handleClickEsercizio(esercizio.id)}
+            >
+              <Card padding="md" className="active:scale-[0.98] transition-transform">
                 <div className="flex items-center gap-4">
-                  {/* Icona */}
                   <div
                     className="w-14 h-14 rounded-md flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: cc?.bg ?? COLORS.surfaceAlt }}
@@ -79,8 +96,6 @@ export default function EserciziPage() {
                       color={cc?.text ?? COLORS.primary}
                     />
                   </div>
-
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-base font-bold text-ink leading-snug">{esercizio.titolo}</h3>
                     <div className="flex items-center gap-1 text-xs" style={{ color: COLORS.inkMuted }}>
@@ -90,15 +105,31 @@ export default function EserciziPage() {
                       <span>Livello {esercizio.livello}/6</span>
                     </div>
                   </div>
-
-                  {/* Freccia centrata verticalmente */}
                   <span className="text-ink-muted text-xl flex-shrink-0">›</span>
                 </div>
               </Card>
-            </Link>
+            </button>
           );
         })}
       </div>
+
+      {/* Modal pausa attiva */}
+      {mostraPausa && (
+        <PausaAttivaModal
+          nome={nome ?? ""}
+          isGuest={isGuest}
+          onVaiPausa={() => {
+            setMostraPausa(false);
+            setPausaAttivaRichiesta(true);
+            router.push("/home");
+          }}
+          onContinua={() => {
+            setMostraPausa(false);
+            if (esercizioTarget) router.push(`/esercizi/${esercizioTarget}`);
+          }}
+          onClose={() => setMostraPausa(false)}
+        />
+      )}
     </div>
   );
 }

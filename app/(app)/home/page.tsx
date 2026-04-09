@@ -5,22 +5,17 @@ import Link from "next/link";
 import Card from "@/components/ui/card";
 import Btn from "@/components/ui/btn";
 import { useUserStore } from "@/lib/store";
-import { mockEsercizioDelGiorno, mockEsercizioDelGiornoCompletato, mockEsercizioDelGiornoRisultato, mockCategorie, mockProgressiSettimanali, mockSessioniRecenti, mockEserciziOggi } from "@/lib/mock-data";
+import { mockEsercizioDelGiorno, mockEsercizioDelGiornoCompletato, mockEsercizioDelGiornoRisultato, mockCategorie, mockProgressiSettimanali, mockSessioniRecenti } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
-import { Timer, Running, Phone, Palette, Leaf, Lock, User, StatsReport, Calendar, Medal, Bell, WarningTriangle, Rocket } from "iconoir-react";
+import { Timer, Running, Phone, Palette, Leaf, Lock, User, StatsReport, Calendar, Medal, Bell } from "iconoir-react";
+import { PausaAttivaModal, CheckCircles } from "@/components/ui/pausa-attiva-modal";
 
 const GIORNO_INDEX: Record<string, number> = { Lun: 1, Mar: 2, Mer: 3, Gio: 4, Ven: 5, Sab: 6, Dom: 7 };
 const OFFSET_DA_LUNEDI: Record<string, number> = { Lun: 0, Mar: 1, Mer: 2, Gio: 3, Ven: 4, Sab: 5, Dom: 6 };
 const LIMITE_ESERCIZI_GIORNO = 5;
 const PAUSA_SECONDI = 15 * 60;
 
-// Colori specifici per la modalità ospite (dal Figma)
-const GUEST = {
-  teal:       "#00a19f",
-  tealLight:  "#ecfafa",
-  tealBorder: "#b2e0e0",
-};
 
 const ATTIVITA_PAUSA = [
   { label: "Socialità",  desc: "Chiama un amico o scrivi un messaggio", icon: <Phone width={28} height={28} strokeWidth={1.5} color="#FFFFFF" /> },
@@ -92,83 +87,6 @@ function StreakCircles({ isGuest }: { isGuest?: boolean }) {
   );
 }
 
-const CheckCircles = () => (
-  <div className="flex gap-3">
-    {Array.from({ length: LIMITE_ESERCIZI_GIORNO }).map((_, i) => (
-      <div key={i} className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
-        <svg className="w-4 h-4" fill="white" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-        </svg>
-      </div>
-    ))}
-  </div>
-);
-
-function PausaAttivaModal({ nome, isGuest, onVaiPausa, onContinua, onClose }: {
-  nome: string;
-  isGuest: boolean;
-  onVaiPausa: () => void;
-  onContinua: () => void;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-end justify-center px-4 pb-6"
-      style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-lg rounded-2xl px-6 pt-4 pb-6 flex flex-col items-center gap-4"
-        style={{ backgroundColor: "#FFFFFF" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="w-10 h-1 rounded-full" style={{ backgroundColor: "#D1D5DB" }} />
-
-        {isGuest ? (
-          <>
-            <CheckCircles />
-            <h2 className="text-xl font-extrabold text-ink text-center">Ottimo! 5 esercizi fatti 🎉</h2>
-            <p className="text-sm text-center" style={{ color: COLORS.inkSecondary }}>
-              Stai allenando bene la mente.<br />
-              <strong className="text-ink">Non perdere questi progressi!</strong>
-            </p>
-            <div className="w-full flex items-start gap-2 rounded-xl px-4 py-3" style={{ backgroundColor: "#FEF9C3" }}>
-              <WarningTriangle width={18} height={18} strokeWidth={1.5} color="#92400E" className="flex-shrink-0 mt-0.5" />
-              <p className="text-xs font-semibold" style={{ color: "#92400E" }}>
-                Senza registrazione questi dati andranno persi alla chiusura dell&apos;app
-              </p>
-            </div>
-            <Link href="/onboarding/registrati" className="w-full">
-              <button className="w-full py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: GUEST.teal }}>
-                Registrati e salva i miei progressi
-              </button>
-            </Link>
-            <button className="text-sm font-semibold" style={{ color: COLORS.inkMuted }} onClick={onContinua}>
-              Continua senza salvare
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
-              <Running width={28} height={28} strokeWidth={1.5} color="#FFFFFF" />
-            </div>
-            <h2 className="text-xl font-extrabold text-ink text-center">Brava {nome}!</h2>
-            <p className="text-sm text-center" style={{ color: COLORS.inkSecondary }}>
-              Hai completato {LIMITE_ESERCIZI_GIORNO} esercizi oggi.<br />
-              La mente ora ha bisogno di consolidare.<br />
-              Prenditi una pausa!
-            </p>
-            <CheckCircles />
-            <Btn size="lg" className="w-full" onClick={onVaiPausa}>Vai alla pausa attiva</Btn>
-            <button className="text-sm font-semibold" style={{ color: COLORS.primary }} onClick={onContinua}>
-              Continua comunque
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function PausaAttivaView({ secondiRimasti }: { secondiRimasti: number }) {
   const mm = String(Math.floor(secondiRimasti / 60)).padStart(2, "0");
@@ -231,10 +149,18 @@ const UPSELL_FEATURES = [
 ];
 
 export default function HomePage() {
-  const { nome, isGuest } = useUserStore();
+  const { nome, isGuest, eserciziFattiOggi, pausaAttivaRichiesta, setPausaAttivaRichiesta } = useUserStore();
   const [mostraPausa, setMostraPausa] = useState(false);
   const [pausaAttiva, setPausaAttiva] = useState(false);
   const [secondiRimasti, setSecondiRimasti] = useState(PAUSA_SECONDI);
+
+  // Risponde al flag impostato dalla pagina /esercizi quando il limite è raggiunto
+  useEffect(() => {
+    if (pausaAttivaRichiesta) {
+      setPausaAttiva(true);
+      setPausaAttivaRichiesta(false);
+    }
+  }, [pausaAttivaRichiesta, setPausaAttivaRichiesta]);
 
   useEffect(() => {
     if (!pausaAttiva || secondiRimasti <= 0) return;
@@ -333,11 +259,10 @@ export default function HomePage() {
 
                 {completato ? (
                   <div className="mt-4 flex flex-col gap-3">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {[
-                        { label: "Tempo",     value: formatTempo(risultato.tempo_secondi) },
-                        { label: "Precisione",value: `${risultato.precisione}%` },
-                        { label: "XP",        value: `+${risultato.xp_guadagnati}XP` },
+                        { label: "Tempo",       value: formatTempo(risultato.tempo_secondi) },
+                        { label: "Accuratezza", value: `${risultato.precisione}%` },
                       ].map((stat) => (
                         <div key={stat.label} className="flex flex-col items-center rounded-lg py-3" style={{ backgroundColor: COLORS.background }}>
                           <span className="text-base font-bold text-ink" style={{ filter: isGuest ? "blur(5px)" : "none", userSelect: isGuest ? "none" : "auto" }}>{stat.value}</span>
@@ -347,23 +272,23 @@ export default function HomePage() {
                     </div>
                     {isGuest && (
                       <Link href="/onboarding/registrati">
-                        <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: GUEST.tealLight, border: `1px solid ${GUEST.tealBorder}` }}>
+                        <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: `${COLORS.primary}10`, border: `1px solid ${COLORS.primary}40` }}>
                           <Lock width={22} height={22} strokeWidth={1.5} color={COLORS.primary} />
                           <div className="flex-1">
                             <p className="text-sm font-extrabold text-ink">Sblocca i tuoi risultati</p>
                             <p className="text-xs mt-0.5" style={{ color: COLORS.inkSecondary }}>Registrati per vedere tempo, precisione e livelli</p>
                           </div>
-                          <span className="text-base font-bold" style={{ color: GUEST.teal }}>›</span>
+                          <span className="text-base font-bold" style={{ color: COLORS.primary }}>›</span>
                         </div>
                       </Link>
                     )}
                   </div>
                 ) : (
                   <div className="mt-4">
-                    {mockEserciziOggi >= LIMITE_ESERCIZI_GIORNO ? (
+                    {eserciziFattiOggi >= LIMITE_ESERCIZI_GIORNO ? (
                       <button
                         className="w-full py-3 rounded-xl text-sm font-bold text-white"
-                        style={{ backgroundColor: isGuest ? GUEST.teal : COLORS.primary }}
+                        style={{ backgroundColor: COLORS.primary }}
                         onClick={() => setMostraPausa(true)}
                       >
                         Inizia ora
@@ -372,7 +297,7 @@ export default function HomePage() {
                       <Link href={`/esercizi/${esercizioGiorno.id}`}>
                         <button
                           className="w-full py-3 rounded-xl text-sm font-bold text-white"
-                          style={{ backgroundColor: isGuest ? GUEST.teal : COLORS.primary }}
+                          style={{ backgroundColor: COLORS.primary }}
                         >
                           Inizia ora
                         </button>
@@ -385,10 +310,10 @@ export default function HomePage() {
 
             {/* Card upsell — solo ospite */}
             {isGuest && (
-              <div className="rounded-2xl p-4 flex flex-col gap-3" style={{ border: `2px solid ${GUEST.tealBorder}`, backgroundColor: GUEST.tealLight }}>
+              <div className="rounded-2xl p-4 flex flex-col gap-3" style={{ border: `2px solid ${COLORS.primary}40`, backgroundColor: `${COLORS.primary}10` }}>
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${GUEST.teal}25` }}>
-                    <Lock width={18} height={18} strokeWidth={1.5} color={GUEST.teal} />
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${COLORS.primary}25` }}>
+                    <Lock width={18} height={18} strokeWidth={1.5} color={COLORS.primary} />
                   </div>
                   <div>
                     <p className="text-base font-extrabold text-ink">Sblocca la tua esperienza completa</p>
@@ -400,15 +325,14 @@ export default function HomePage() {
                 <div className="grid grid-cols-2 gap-2">
                   {UPSELL_FEATURES.map(({ label, icon: Icon }) => (
                     <div key={label} className="flex items-center gap-2">
-                      <Icon width={18} height={18} strokeWidth={1.5} color={GUEST.teal} />
+                      <Icon width={24} height={24} strokeWidth={1.5} color={COLORS.primary} />
                       <span className="text-xs font-semibold text-ink">{label}</span>
                     </div>
                   ))}
                 </div>
                 <Link href="/onboarding/registrati">
-                  <button className="w-full py-3 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2" style={{ backgroundColor: GUEST.teal }}>
-                    <Rocket width={18} height={18} strokeWidth={1.5} color="#FFFFFF" />
-                    Registrati
+                  <button className="w-full py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: COLORS.primary }}>
+                    Registrati gratuitamente
                   </button>
                 </Link>
               </div>
@@ -428,7 +352,7 @@ export default function HomePage() {
                   const ultimaSessione = mockSessioniRecenti.find((s) => s.categoria === cat.nome);
                   const trendConfig = {
                     crescita: { icon: "↑",  label: "In crescita", color: "#16A34A" },
-                    stabile:  { icon: "─›", label: "Stabile",     color: COLORS.primary },
+                    stabile:  { icon: "→",  label: "Stabile",     color: COLORS.primary },
                     calo:     { icon: "↓",  label: "In calo",     color: "#DC2626" },
                   };
                   const trend = ultimaSessione?.trend ? trendConfig[ultimaSessione.trend] : null;
@@ -446,7 +370,7 @@ export default function HomePage() {
                           </span>
                         ) : trend && (
                           <span className="inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-full mt-1" style={{ backgroundColor: "#FFFFFF", color: trend.color }}>
-                            {trend.icon}{trend.label}
+                            {trend.icon}{" "}{trend.label}
                           </span>
                         )}
                       </div>

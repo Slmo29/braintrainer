@@ -26,25 +26,41 @@ function buildCalendarCells(year: number, month: number): (number | null)[] {
   return cells;
 }
 
-function getCompletatiDates(): Set<string> {
+function getAllCompletatiDates(): Set<string> {
   const set = new Set<string>();
-  const now = new Date();
-  const jsDay = now.getDay();
-  const daysFromMonday = jsDay === 0 ? 6 : jsDay - 1;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - daysFromMonday);
-  const OFFSET: Record<string, number> = { Lun: 0, Mar: 1, Mer: 2, Gio: 3, Ven: 4, Sab: 5, Dom: 6 };
-  for (const g of mockProgressiSettimanali) {
-    if (g.esercizi > 0) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + OFFSET[g.giorno]);
-      set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
-    }
+  for (const g of mockStoricoGiornaliero) {
+    if (g.sessioni.length > 0) set.add(g.data);
   }
   return set;
 }
 
-function CalendarioMensile({ streak, children }: { streak: number; children?: React.ReactNode }) {
+function buildStreakFromStorico(): number {
+  const now = new Date();
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    if (mockStoricoGiornaliero.some((g) => g.data === dateStr && g.sessioni.length > 0)) {
+      streak++;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function CalendarioMensile({
+  streak,
+  selectedDate,
+  onDaySelect,
+  children,
+}: {
+  streak: number;
+  selectedDate: string | null;
+  onDaySelect: (date: string) => void;
+  children?: React.ReactNode;
+}) {
   const [meseOffset, setMeseOffset] = useState(0);
   const now = new Date();
   const currentYear = now.getFullYear();
@@ -56,7 +72,7 @@ function CalendarioMensile({ streak, children }: { streak: number; children?: Re
   const month = displayDate.getMonth();
   const isCurrentMonth = year === currentYear && month === currentMonth;
 
-  const completatiSet = getCompletatiDates();
+  const completatiSet = getAllCompletatiDates();
   const cells = buildCalendarCells(year, month);
   const HEADER = ["L", "M", "M", "G", "V", "S", "D"];
 
@@ -65,7 +81,7 @@ function CalendarioMensile({ streak, children }: { streak: number; children?: Re
       {/* Titolo + streak */}
       <div className="mb-4">
         <p className="text-base font-bold text-ink">Storico allenamenti</p>
-        <p className="text-sm font-bold" style={{ color: "#1891B1" }}>{streak}/7 giorni consecutivi</p>
+        <p className="text-sm font-bold" style={{ color: COLORS.primary }}>{streak} giorni consecutivi</p>
       </div>
 
       {/* Header mese */}
@@ -107,16 +123,21 @@ function CalendarioMensile({ streak, children }: { streak: number; children?: Re
           const isToday = isCurrentMonth && day === todayDate;
           const isFuture = isCurrentMonth && day > todayDate;
           const completato = completatiSet.has(dateStr);
+          const isSelected = selectedDate === dateStr;
 
           let bg = "transparent";
           let border = "1.5px solid #D1D5DB";
           let color = "#6B7280";
 
-          if (isToday) {
-            border = `1.5px solid #1891B1`;
-            color = "#1891B1";
+          if (isSelected) {
+            bg = COLORS.primary;
+            border = "none";
+            color = "#FFFFFF";
+          } else if (isToday) {
+            border = `1.5px solid ${COLORS.primary}`;
+            color = COLORS.primary;
           } else if (completato) {
-            bg = "#1891B1";
+            bg = COLORS.primary;
             border = "none";
             color = "#FFFFFF";
           } else if (isFuture) {
@@ -126,12 +147,14 @@ function CalendarioMensile({ streak, children }: { streak: number; children?: Re
 
           return (
             <div key={i} className="flex justify-center py-0.5">
-              <div
+              <button
+                disabled={isFuture}
+                onClick={() => onDaySelect(isSelected ? "" : dateStr)}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
-                style={{ backgroundColor: bg, border, color }}
+                style={{ backgroundColor: bg, border, color, cursor: isFuture ? "default" : "pointer" }}
               >
                 {day}
-              </div>
+              </button>
             </div>
           );
         })}
@@ -154,12 +177,12 @@ const TREND_TEXTS: Record<string, Record<string, string>> = {
     calo:     "Stai ricordando meno cose rispetto a prima. Non preoccuparti, riprendi gli esercizi e tornerà a salire!",
   },
   Attenzione: {
-    crescita: "La tua concentrazione sta migliorando. Stai diventando sempre più bravo a focalizzarti sui dettagli!",
+    crescita: "La tua concentrazione sta migliorando. La tua capacità di focalizzarti sui dettagli sta crescendo!",
     stabile:  "La tua concentrazione è stabile. Prova a fare qualche esercizio in più per migliorare ancora!",
     calo:     "La tua concentrazione ha bisogno di un po' di allenamento. Riprendi gli esercizi e tornerà a salire!",
   },
   Linguaggio: {
-    crescita: "Il tuo linguaggio sta migliorando. Stai diventando sempre più bravo con le parole!",
+    crescita: "Il tuo linguaggio sta migliorando. Stai migliorando sempre più con le parole!",
     stabile:  "Il tuo linguaggio è stabile. Prova a fare qualche esercizio in più per portarlo al livello successivo!",
     calo:     "Il tuo linguaggio ha bisogno di un po' di allenamento. Riprendi gli esercizi e tornerà a salire!",
   },
@@ -327,6 +350,42 @@ function StoricoGiornaliero() {
   );
 }
 
+function DettaglioGiorno({ dateStr }: { dateStr: string }) {
+  // TODO: sostituire con fetch da Supabase per il giorno selezionato
+  const sessioni = mockStoricoGiornaliero.find((g) => g.data === dateStr)?.sessioni ?? [];
+  const d = new Date(dateStr);
+  const label = `${NOMI_GIORNO_IT[d.getDay()]} ${d.getDate()} ${MESI_SHORT_IT[d.getMonth()]}`;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-base font-bold text-ink">{label}</p>
+      {sessioni.length === 0 ? (
+        <p className="text-sm" style={{ color: COLORS.inkMuted }}>Nessuna sessione completata in questo giorno.</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {sessioni.map((s, i) => {
+            const cc = CATEGORIA_COLORS[s.categoria.toLowerCase()];
+            return (
+              <div key={i} className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: "#FFFFFF" }}>
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: cc?.bg ?? COLORS.background }}
+                >
+                  <AppIcon name={s.icona} size={22} color={cc?.text ?? COLORS.primary} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-ink truncate">{s.nome_esercizio}</p>
+                  <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Livello {s.livello}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const totaleSettimana = mockProgressiSettimanali.reduce((a, g) => a + g.esercizi, 0);
 
 // ── Dati globali cervello ─────────────────────────────────────────────────────
@@ -458,6 +517,7 @@ type Tab = "attivita" | "storico" | "medaglie";
 export default function ProgressiPage() {
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>((searchParams.get("tab") as Tab) ?? "attivita");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const { medaglie: medaglieIds } = useUserStore();
 
   useEffect(() => {
@@ -465,13 +525,6 @@ export default function ProgressiPage() {
     if (t) setTab(t);
   }, [searchParams]);
   const medaglieGuadagnate = mockMedaglie.filter((m) => medaglieIds.includes(m.id));
-
-  const jsDay = new Date().getDay();
-  const oggiIndex = jsDay === 0 ? 7 : jsDay;
-  const GIORNO_IDX: Record<string, number> = { Lun: 1, Mar: 2, Mer: 3, Gio: 4, Ven: 5, Sab: 6, Dom: 7 };
-  const giorniCompletati = mockProgressiSettimanali.filter(
-    (g) => g.esercizi > 0 && GIORNO_IDX[g.giorno] <= oggiIndex
-  ).length;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -525,12 +578,18 @@ export default function ProgressiPage() {
             ? "Questa settimana hai fatto lo stesso numero di esercizi della settimana scorsa."
             : `Questa settimana hai fatto ${diff} esercizi rispetto alla settimana scorsa.`;
           return (
-            <CalendarioMensile streak={giorniCompletati}>
-              <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: bg }}>
-                <p className="text-sm font-semibold" style={{ color }}>{txt}</p>
-              </div>
-              <StoricoGiornaliero />
-            </CalendarioMensile>
+            <>
+              <CalendarioMensile
+                streak={buildStreakFromStorico()}
+                selectedDate={selectedDate}
+                onDaySelect={(d) => setSelectedDate(d || null)}
+              >
+                <div className="rounded-xl p-4" style={{ backgroundColor: bg }}>
+                  <p className="text-sm font-semibold" style={{ color }}>{txt}</p>
+                </div>
+              </CalendarioMensile>
+              {selectedDate && <DettaglioGiorno dateStr={selectedDate} />}
+            </>
           );
         })()}
 

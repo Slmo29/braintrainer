@@ -28,16 +28,16 @@ const PUNTI = [
 export default function OnboardingPage() {
   return (
     <div
-      className="min-h-screen flex flex-col items-center px-6 pt-6 pb-28 max-w-lg mx-auto"
+      className="min-h-screen flex flex-col items-center px-6 pt-6 pb-12 max-w-lg mx-auto"
       style={{ background: `linear-gradient(160deg, ${COLORS.primaryLight}88 0%, ${COLORS.surface} 55%)` }}
     >
       <StepLines current={0} />
 
       {/* Hero */}
-      <div className="flex flex-col items-center w-full">
+      <div className="flex flex-col items-center w-full gap-6">
         <Brain width={80} height={80} strokeWidth={1.5} color={COLORS.primary} />
 
-        <div className="text-center mt-6">
+        <div className="text-center">
           <h1 className="text-2xl font-extrabold text-ink">BrainTrainer</h1>
           <p className="text-base text-ink-secondary mt-2 leading-relaxed">
             Allena la mente ogni giorno con esercizi semplici e divertenti
@@ -46,7 +46,7 @@ export default function OnboardingPage() {
 
         {/* Lista verticale punti */}
         <div
-          className="rounded-lg w-full flex flex-col border mt-6"
+          className="rounded-lg w-full flex flex-col border"
           style={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 18, paddingRight: 18, backgroundColor: COLORS.surface, borderColor: `${COLORS.primary}22` }}
         >
           {PUNTI.map((p, i) => (
@@ -68,18 +68,19 @@ export default function OnboardingPage() {
             </div>
           ))}
         </div>
-      </div>
 
-      <div className="fixed bottom-6 left-0 right-0 px-6 max-w-lg mx-auto flex flex-col gap-3">
-        <Link href="/onboarding/istruzioni" className="w-full">
-          <Btn size="lg">Prova subito</Btn>
-        </Link>
-        <p className="text-center text-sm text-ink-secondary">
-          Hai già un profilo?{" "}
-          <Link href="/onboarding/accedi" style={{ color: COLORS.primary, fontWeight: 500 }}>
-            Accedi
+        {/* CTA */}
+        <div className="w-full flex flex-col gap-3">
+          <Link href="/onboarding/istruzioni" className="w-full">
+            <Btn size="lg">Prova subito</Btn>
           </Link>
-        </p>
+          <p className="text-center text-sm text-ink-secondary">
+            Hai già un profilo?{" "}
+            <Link href="/onboarding/accedi" style={{ color: COLORS.primary, fontWeight: 500 }}>
+              Accedi
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

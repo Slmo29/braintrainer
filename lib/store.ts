@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { mockEserciziOggi } from "@/lib/mock-data";
 
 export type CanalNotifica = "whatsapp" | "sms" | "email";
 
@@ -29,6 +30,10 @@ export interface UserState {
   streak: number;
   esercizi_completati: number;
   familiari: Familiare[];
+  // TODO: da Supabase — conteggio esercizi completati oggi per l'utente corrente
+  eserciziFattiOggi: number;
+  // flag cross-page: impostato da /esercizi per far aprire PausaAttivaView in /home
+  pausaAttivaRichiesta: boolean;
 }
 
 interface UserStore extends UserState {
@@ -36,6 +41,7 @@ interface UserStore extends UserState {
   aggiungiMedaglia: (id: string) => void;
   aggiornaFamiliare: (id: string, data: Partial<Familiare>) => void;
   rimuoviFamiliare: (id: string) => void;
+  setPausaAttivaRichiesta: (v: boolean) => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -52,6 +58,8 @@ export const useUserStore = create<UserStore>((set) => ({
   medaglie: ["prima-sfida", "tre-giorni", "dieci-esercizi"],
   streak: 7,
   esercizi_completati: 12,
+  eserciziFattiOggi: mockEserciziOggi, // TODO: da Supabase
+  pausaAttivaRichiesta: false,
 
   // Familiari mock
   familiari: [
@@ -74,6 +82,7 @@ export const useUserStore = create<UserStore>((set) => ({
   ],
 
   setUser: (data) => set((s) => ({ ...s, ...data })),
+  setPausaAttivaRichiesta: (v) => set({ pausaAttivaRichiesta: v }),
 
   aggiungiMedaglia: (id) =>
     set((s) => ({

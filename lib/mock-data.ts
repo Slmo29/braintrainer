@@ -100,8 +100,8 @@ export const mockEsercizioDelGiorno = mockEsercizi[0];
 // TODO: in futuro questo verrà da Supabase (sessioni di oggi)
 // TODO: sostituire con query Supabase — SELECT count(*) FROM sessioni WHERE utente_id = ? AND data = TODAY()
 // La logica di blocco è: se sessioni_oggi >= LIMITE_ESERCIZI_GIORNO (5) → mostra modale pausa attiva
-export const mockEserciziOggi = 5;
-export const mockEsercizioDelGiornoCompletato = false;
+export const mockEserciziOggi = 4;
+export const mockEsercizioDelGiornoCompletato = true;
 export const mockEsercizioDelGiornoRisultato = {
   tempo_secondi: 108,   // 1:48
   precisione: 92,       // %
@@ -181,12 +181,44 @@ export const mockSessioniRecenti = [
 // ─── Mock Storico Giornaliero ─────────────────────────────────────────────────
 export const mockTotaleSettimanaScorsa = 7;
 
+// TODO: sostituire con dati reali da Supabase (tabella sessioni)
+// Struttura: { data: string (YYYY-MM-DD), sessioni: SessioneStorico[] }
+// SessioneStorico: { nome_esercizio, categoria, icona, livello, score }
 export const mockStoricoGiornaliero = [
+  {
+    data: "2026-04-09",
+    sessioni: [
+      { nome_esercizio: "Ricorda le parole",   categoria: "Memoria",    icona: "brain",  livello: 3, score: 78 },
+      { nome_esercizio: "Trova le differenze", categoria: "Attenzione", icona: "target", livello: 2, score: 65 },
+    ],
+  },
+  {
+    data: "2026-04-08",
+    sessioni: [
+      { nome_esercizio: "Sequenza di numeri",  categoria: "Memoria",    icona: "brain",  livello: 3, score: 82 },
+      { nome_esercizio: "Completa la frase",   categoria: "Linguaggio", icona: "chat",   livello: 4, score: 91 },
+    ],
+  },
+  {
+    data: "2026-04-07",
+    sessioni: [
+      { nome_esercizio: "Memoria visiva",      categoria: "Memoria",    icona: "brain",  livello: 3, score: 76 },
+      { nome_esercizio: "Trova l'intruso",     categoria: "Attenzione", icona: "target", livello: 2, score: 70 },
+      { nome_esercizio: "Sinonimi veloci",     categoria: "Linguaggio", icona: "chat",   livello: 4, score: 88 },
+    ],
+  },
+  {
+    data: "2026-04-06",
+    sessioni: [
+      { nome_esercizio: "Ricorda le parole",   categoria: "Memoria",    icona: "brain",  livello: 3, score: 74 },
+      { nome_esercizio: "Completa la frase",   categoria: "Linguaggio", icona: "chat",   livello: 4, score: 86 },
+    ],
+  },
   {
     data: "2026-04-03",
     sessioni: [
-      { categoria: "Memoria",    icona: "brain",  livello: 3, score: 74 },
-      { categoria: "Linguaggio", icona: "chat",   livello: 4, score: 88 },
+      { nome_esercizio: "Sequenza di numeri",  categoria: "Memoria",    icona: "brain",  livello: 3, score: 74 },
+      { nome_esercizio: "Completa la frase",   categoria: "Linguaggio", icona: "chat",   livello: 4, score: 88 },
     ],
   },
   {
@@ -196,22 +228,22 @@ export const mockStoricoGiornaliero = [
   {
     data: "2026-04-01",
     sessioni: [
-      { categoria: "Memoria",    icona: "brain",  livello: 3, score: 70 },
-      { categoria: "Attenzione", icona: "target", livello: 2, score: 61 },
-      { categoria: "Linguaggio", icona: "chat",   livello: 4, score: 89 },
+      { nome_esercizio: "Ricorda le parole",   categoria: "Memoria",    icona: "brain",  livello: 3, score: 70 },
+      { nome_esercizio: "Trova le differenze", categoria: "Attenzione", icona: "target", livello: 2, score: 61 },
+      { nome_esercizio: "Sinonimi veloci",     categoria: "Linguaggio", icona: "chat",   livello: 4, score: 89 },
     ],
   },
   {
     data: "2026-03-31",
     sessioni: [
-      { categoria: "Linguaggio", icona: "chat", livello: 4, score: 88 },
+      { nome_esercizio: "Completa la frase",   categoria: "Linguaggio", icona: "chat",   livello: 4, score: 88 },
     ],
   },
   {
     data: "2026-03-30",
     sessioni: [
-      { categoria: "Memoria",    icona: "brain",  livello: 3, score: 68 },
-      { categoria: "Attenzione", icona: "target", livello: 2, score: 58 },
+      { nome_esercizio: "Memoria visiva",      categoria: "Memoria",    icona: "brain",  livello: 3, score: 68 },
+      { nome_esercizio: "Trova l'intruso",     categoria: "Attenzione", icona: "target", livello: 2, score: 58 },
     ],
   },
 ];

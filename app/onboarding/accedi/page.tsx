@@ -83,7 +83,7 @@ export default function AccediPage() {
             <div style={{ backgroundColor: `${COLORS.primary}12`, borderRadius: 10, padding: "10px 14px" }}>
               <p style={{ fontSize: 13, color: "#5A5A72", margin: 0 }}>
                 {tipo === "email"
-                  ? "Ecco come apparirà l'email:"
+                  ? "Ecco come apparirà l'email sul tuo telefono:"
                   : "Ecco come apparirà l'SMS sul tuo telefono:"}
               </p>
             </div>
