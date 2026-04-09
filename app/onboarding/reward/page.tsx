@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import Btn from "@/components/ui/btn";
 import { useUserStore } from "@/lib/store";
 import { COLORS } from "@/lib/design-tokens";
-import { LightBulb } from "iconoir-react";
+import { LightBulb, Brain, StatsReport, Medal, Bell } from "iconoir-react";
 import StepLines from "@/components/ui/step-lines";
 
 export default function OnboardingRewardPage() {
   const router = useRouter();
   const aggiungiMedaglia = useUserStore((s) => s.aggiungiMedaglia);
+  const setUser = useUserStore((s) => s.setUser);
   const [animato, setAnimato] = useState(false);
 
   useEffect(() => {
@@ -65,13 +66,15 @@ export default function OnboardingRewardPage() {
         <p className="text-sm font-bold text-ink mb-2">Con il tuo account ottieni:</p>
         <div className="grid grid-cols-2 gap-2">
           {[
-            "Sblocca tutti gli esercizi",
-            "Traccia i tuoi progressi",
-            "Accumula medaglie e livelli",
-            "Promemoria personalizzati",
-          ].map((label) => (
+            { label: "Sblocca tutti gli esercizi", icon: <Brain width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
+            { label: "Traccia i tuoi progressi",   icon: <StatsReport width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
+            { label: "Accumula medaglie e livelli", icon: <Medal width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
+            { label: "Promemoria personalizzati",   icon: <Bell width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
+          ].map(({ label, icon }) => (
             <div key={label} className="rounded-lg p-3 flex flex-col gap-2" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.primary}22` }}>
-              <div className="w-7 h-7 rounded-full" style={{ backgroundColor: COLORS.primary }} />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}18` }}>
+                {icon}
+              </div>
               <p className="text-xs font-semibold text-ink leading-snug">{label}</p>
             </div>
           ))}
@@ -83,7 +86,11 @@ export default function OnboardingRewardPage() {
         <Btn size="lg" className="text-base leading-tight" onClick={() => router.push("/onboarding/registrati")}>
           Registrati e salva<br />i miei progressi
         </Btn>
-        <button onClick={() => router.push("/home")} className="text-sm text-center mt-2" style={{ color: COLORS.primary, fontWeight: 500 }}>
+        <button
+          onClick={() => { setUser({ isGuest: true }); router.push("/home"); }}
+          className="text-sm text-center mt-2"
+          style={{ color: COLORS.primary, fontWeight: 500 }}
+        >
           Continua senza registrarti
         </button>
       </div>

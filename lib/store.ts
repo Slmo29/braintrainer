@@ -16,6 +16,7 @@ export interface Familiare {
 }
 
 export interface UserState {
+  isGuest: boolean;
   nome: string;
   cognome: string;
   telefono: string;
@@ -39,6 +40,7 @@ interface UserStore extends UserState {
 
 export const useUserStore = create<UserStore>((set) => ({
   // Dati utente di default
+  isGuest: false,
   nome: "Mario",
   cognome: "",
   telefono: "+39 333 1234567",

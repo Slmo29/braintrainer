@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Card from "@/components/ui/card";
 import { mockMedaglie, mockProgressiSettimanali, mockScoreCategorie, mockStoricoGiornaliero, mockTotaleSettimanaScorsa } from "@/lib/mock-data";
@@ -452,11 +453,17 @@ function CervelloGlobaleCard() {
   );
 }
 
-type Tab = "attivita" | "medaglie";
+type Tab = "attivita" | "storico" | "medaglie";
 
 export default function ProgressiPage() {
-  const [tab, setTab] = useState<Tab>("attivita");
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useState<Tab>((searchParams.get("tab") as Tab) ?? "attivita");
   const { medaglie: medaglieIds } = useUserStore();
+
+  useEffect(() => {
+    const t = searchParams.get("tab") as Tab | null;
+    if (t) setTab(t);
+  }, [searchParams]);
   const medaglieGuadagnate = mockMedaglie.filter((m) => medaglieIds.includes(m.id));
 
   const jsDay = new Date().getDay();
@@ -474,17 +481,17 @@ export default function ProgressiPage() {
           <h1 className="text-2xl font-extrabold text-ink">I tuoi progressi</h1>
         </div>
         <div className="flex mt-4">
-          {(["attivita", "medaglie"] as Tab[]).map((t) => (
+          {([["attivita", "Attività"], ["storico", "Storico"], ["medaglie", "Medaglie"]] as [Tab, string][]).map(([t, label]) => (
             <button
               key={t}
               onClick={() => setTab(t)}
-              className="flex-1 py-3 text-base font-semibold border-b-2 transition-all capitalize"
+              className="flex-1 py-3 text-base font-semibold border-b-2 transition-all"
               style={{
                 borderColor: tab === t ? COLORS.primary : "transparent",
                 color: tab === t ? COLORS.primary : COLORS.inkMuted,
               }}
             >
-              {t === "attivita" ? "Attività" : "Medaglie"}
+              {label}
             </button>
           ))}
         </div>
@@ -504,29 +511,28 @@ export default function ProgressiPage() {
               ))}
             </div>
 
-            {/* 5 — Storico unificato */}
-            {(() => {
-              const diff  = totaleSettimana - mockTotaleSettimanaScorsa;
-              const bg    = diff > 0 ? COLORS.successLight : diff === 0 ? "#F5F5F5" : "#FEF2F2";
-              const color = diff > 0 ? COLORS.success      : diff === 0 ? "#6B7280" : "#DC2626";
-              const txt   = diff > 0
-                ? `Questa settimana hai fatto +${diff} esercizi rispetto alla settimana scorsa.`
-                : diff === 0
-                ? "Questa settimana hai fatto lo stesso numero di esercizi della settimana scorsa."
-                : `Questa settimana hai fatto ${diff} esercizi rispetto alla settimana scorsa.`;
-              return (
-                <CalendarioMensile streak={giorniCompletati}>
-                  <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: bg }}>
-                    <p className="text-sm font-semibold" style={{ color }}>{txt}</p>
-                  </div>
-                  <StoricoGiornaliero />
-                </CalendarioMensile>
-              );
-            })()}
-
-
           </>
         )}
+
+        {/* ── Tab: Storico ──────────────────────────────────────────── */}
+        {tab === "storico" && (() => {
+          const diff  = totaleSettimana - mockTotaleSettimanaScorsa;
+          const bg    = diff > 0 ? COLORS.successLight : diff === 0 ? "#F5F5F5" : "#FEF2F2";
+          const color = diff > 0 ? COLORS.success      : diff === 0 ? "#6B7280" : "#DC2626";
+          const txt   = diff > 0
+            ? `Questa settimana hai fatto +${diff} esercizi rispetto alla settimana scorsa.`
+            : diff === 0
+            ? "Questa settimana hai fatto lo stesso numero di esercizi della settimana scorsa."
+            : `Questa settimana hai fatto ${diff} esercizi rispetto alla settimana scorsa.`;
+          return (
+            <CalendarioMensile streak={giorniCompletati}>
+              <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: bg }}>
+                <p className="text-sm font-semibold" style={{ color }}>{txt}</p>
+              </div>
+              <StoricoGiornaliero />
+            </CalendarioMensile>
+          );
+        })()}
 
         {/* ── Tab: Medaglie ─────────────────────────────────────────── */}
         {tab === "medaglie" && (

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Btn from "@/components/ui/btn";
 import { useUserStore, type CanalNotifica } from "@/lib/store";
 import { COLORS } from "@/lib/design-tokens";
-import { MessageText, Mail, Whatsapp } from "iconoir-react";
+import { MessageText, Mail, Whatsapp, ArrowLeft } from "iconoir-react";
 import StepLines from "@/components/ui/step-lines";
 import { MagicLinkAnimation } from "@/components/ui/magic-link-animation";
 
@@ -54,7 +54,7 @@ export default function OnboardingRegistratiPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fromLogin = searchParams.get("from") === "login";
-  const setUser = useUserStore((s) => s.setUser);
+  const { setUser, isGuest } = useUserStore();
 
   const [nome, setNome]         = useState("");
   const [telefono, setTel]      = useState("");
@@ -82,13 +82,24 @@ export default function OnboardingRegistratiPage() {
   }
 
   function handleSenzaRegistrazione() {
-    setUser({ nome: nome || "Mario", canale_notifica: "whatsapp", orario_notifica: "09:00" });
+    setUser({ nome: nome || "Mario", canale_notifica: "whatsapp", orario_notifica: "09:00", isGuest: true });
     router.push("/home");
   }
 
   return (
     <div className="min-h-screen flex flex-col max-w-lg mx-auto px-5 pt-6 pb-56" style={{ backgroundColor: COLORS.background }}>
-      {!fromLogin && <StepLines current={4} />}
+      {isGuest ? (
+        <button
+          onClick={() => router.push("/home")}
+          className="flex items-center gap-2 mb-4 text-sm font-semibold"
+          style={{ color: COLORS.primary }}
+        >
+          <ArrowLeft width={20} height={20} strokeWidth={1.5} color={COLORS.primary} />
+          Torna alla home
+        </button>
+      ) : (
+        !fromLogin && <StepLines current={4} />
+      )}
 
       {step === "form" ? (
         <div className="flex flex-col gap-5">
@@ -224,7 +235,7 @@ export default function OnboardingRegistratiPage() {
               Registrandoti accetti di ricevere il promemoria. Puoi disattivarlo quando vuoi.
             </p>
           )}
-          {!fromLogin && (
+          {!fromLogin && !isGuest && (
             <button onClick={handleSenzaRegistrazione} className="text-sm text-center" style={{ color: COLORS.primary }}>
               Continua senza registrarti
             </button>

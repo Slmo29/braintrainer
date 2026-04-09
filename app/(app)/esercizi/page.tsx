@@ -9,23 +9,21 @@ import { AppIcon } from "@/lib/icons";
 import { Timer } from "iconoir-react";
 
 const TABS = [
-  { id: "tutti",      label: "Tutti" },
   { id: "memoria",    label: "Memoria" },
   { id: "attenzione", label: "Attenzione" },
   { id: "linguaggio", label: "Linguaggio" },
 ];
 
 export default function EserciziPage() {
-  const [tab, setTab] = useState("tutti");
+  const [tab, setTab] = useState("memoria");
 
-  const eserciziFiltrati =
-    tab === "tutti" ? mockEsercizi : mockEsercizi.filter((e) => e.categoria_id === tab);
+  const eserciziFiltrati = mockEsercizi.filter((e) => e.categoria_id === tab);
 
   return (
     <div className="flex flex-col min-h-screen">
       {/* ── Header + Tabs ────────────────────────────────────────────── */}
       <div className="bg-surface px-4 pt-6 pb-0 sticky top-0 z-10 shadow-card">
-        <h1 className="text-2xl font-extrabold text-ink">I tuoi esercizi</h1>
+        <h1 className="text-2xl font-extrabold text-ink">Libreria esercizi</h1>
 
         {/* Tab bar */}
         <div className="flex mt-4 overflow-x-auto scrollbar-none -mx-4 px-4">
