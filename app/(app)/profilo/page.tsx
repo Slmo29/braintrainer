@@ -11,8 +11,9 @@ import { mockMedaglie } from "@/lib/mock-data";
 import { COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
 import {
-  User, EditPencil, CheckCircle, Calendar, Phone, Mail, Bell, Timer,
-  ChatBubble, Medal, Group, Link as LinkIcon, Copy, FireFlame,
+  User, CheckCircle, Phone, Mail, Bell, Timer,
+  Medal, Group,
+  NavArrowDown, NavArrowUp,
 } from "iconoir-react";
 
 const ORE = ["07:00","08:00","09:00","10:00","11:00","12:00","14:00","16:00","18:00","20:00","21:00"];
@@ -321,107 +322,168 @@ function SezioneMedaglie() {
   );
 }
 
+const PARENTELE = [
+  "Figlio", "Figlia",
+  "Nipote", "Pronipote",
+  "Fratello", "Sorella",
+  "Genero", "Nuora",
+  "Cognato", "Cognata",
+  "Cugino", "Cugina",
+  "Badante", "Amico di famiglia",
+];
+
 // ─── Sezione Famiglia ─────────────────────────────────────────────────────────
 function SezioneFamiglia() {
-  const { familiari, aggiornaFamiliare, rimuoviFamiliare } = useUserStore();
+  const { familiari, setUser, rimuoviFamiliare } = useUserStore();
   const [showInvita, setShowInvita] = useState(false);
-  const [invitaInput, setInvitaInput] = useState("");
-  const [linkGenerato, setLinkGenerato] = useState("");
-  const [linkCopiato, setLinkCopiato] = useState(false);
+  const [inviatoOk, setInviatoOk] = useState(false);
+  const [draft, setDraft] = useState({ contatto: "", nome: "", parentela: "" });
   const [confirmRimuovi, setConfirmRimuovi] = useState<string | null>(null);
 
-  function generaLink() {
+  function resetModal() {
+    setDraft({ contatto: "", nome: "", parentela: "" });
+    setInviatoOk(false);
+  }
+
+  function handleInvia() {
+    if (!draft.contatto || !draft.nome || !draft.parentela) return;
+
+    // TODO: sostituire con chiamata Supabase — INSERT INTO inviti_familiari + invio server-side
     const token = Math.random().toString(36).slice(2, 10).toUpperCase();
-    setLinkGenerato(`https://braintrainer.app/invito?token=${token}`);
+    const link = `https://braintrainer.app/famigliare?token=${token}`;
+    const messaggio = `Ciao ${draft.nome}! Ti invito a seguire i miei progressi su BrainTrainer e tenermi compagnia nel mio allenamento mentale. Unisciti qui → ${link}`;
+
+    const isEmail = draft.contatto.includes("@");
+    if (isEmail) {
+      window.open(
+        `mailto:${encodeURIComponent(draft.contatto)}?subject=${encodeURIComponent("Ti invito su BrainTrainer")}&body=${encodeURIComponent(messaggio)}`,
+        "_blank"
+      );
+    } else {
+      window.open(`sms:${draft.contatto}?body=${encodeURIComponent(messaggio)}`, "_blank");
+    }
+
+    const nuovoFamiliare = {
+      id: `fam-${Date.now()}`,
+      nome: draft.nome,
+      relazione: draft.parentela,
+      telefono: isEmail ? "" : draft.contatto,
+      collegato_da: "0 giorni",
+      permessi: { attivita: true, medaglie: true, progressi: true },
+    };
+    setUser({ familiari: [...familiari, nuovoFamiliare] });
+    setInviatoOk(true);
+    setTimeout(() => { setShowInvita(false); resetModal(); }, 1800);
   }
 
-  function copiaLink() {
-    navigator.clipboard.writeText(linkGenerato).catch(() => {});
-    setLinkCopiato(true);
-    setTimeout(() => setLinkCopiato(false), 2500);
-  }
-
-  const AVATAR_COLORS = ["#7B4FA6", "#2E7D52", "#C2185B", "#1891B1", "#B45309"];
+  const canInvia = draft.contatto.trim() && draft.nome.trim() && draft.parentela;
 
   return (
     <>
-      <Card padding="md">
-        <div className="flex items-center justify-between mb-3">
-          <SectionTitle>
-            <Group width={18} height={18} strokeWidth={1.5} color={COLORS.primary} />
-            La mia famiglia
-          </SectionTitle>
-          <Link href="/famiglia/dashboard" className="text-sm font-semibold" style={{ color: COLORS.primary }}>
-            Vista familiare →
-          </Link>
-        </div>
+      <div className="flex flex-col gap-2">
+        {familiari.map((f) => (
+          <FamiliareCard
+            key={f.id}
+            familiare={f}
+            onRimuovi={() => setConfirmRimuovi(f.id)}
+          />
+        ))}
+        {familiari.length === 0 && (
+          <p className="text-sm text-center py-4" style={{ color: COLORS.inkMuted }}>Nessun familiare collegato.</p>
+        )}
 
-        <div className="flex flex-col gap-3">
-          {familiari.map((f, i) => (
-            <FamiliareCard
-              key={f.id}
-              familiare={f}
-              avatarColor={AVATAR_COLORS[i % AVATAR_COLORS.length]}
-              onAggiorna={(data) => aggiornaFamiliare(f.id, data)}
-              onRimuovi={() => setConfirmRimuovi(f.id)}
-            />
-          ))}
-          {familiari.length === 0 && (
-            <p className="text-sm text-ink-muted text-center py-2">Nessun familiare collegato.</p>
-          )}
-        </div>
+        {/* Spacer per non coprire l'ultimo card col bottone fisso */}
+        <div className="h-16" />
+      </div>
 
-        <div className="mt-4">
-          <Btn variant="outline" size="default" onClick={() => { setShowInvita(true); setLinkGenerato(""); setInvitaInput(""); }}>
-            + Invita un familiare
-          </Btn>
-        </div>
-      </Card>
+      {/* Bottone fisso sopra la navbar */}
+      <div className="fixed bottom-[100px] left-0 right-0 px-4 z-40 max-w-lg mx-auto">
+        <button
+          className="w-full py-3 rounded-full text-sm font-bold text-white shadow-lg"
+          style={{ backgroundColor: COLORS.primary }}
+          onClick={() => { resetModal(); setShowInvita(true); }}
+        >
+          + Invita familiare
+        </button>
+      </div>
 
       {/* Modal invita */}
-      <Modal open={showInvita} onClose={() => setShowInvita(false)} title="Invita un familiare">
-        <div className="flex flex-col gap-4">
-          <p className="text-base text-ink-secondary">Numero di telefono o email del familiare</p>
-          <input type="text" value={invitaInput} onChange={(e) => setInvitaInput(e.target.value)}
-            placeholder="+39 333 ... oppure email@..." className={inputCls} />
-
-          {!linkGenerato ? (
-            <Btn size="lg" onClick={generaLink} disabled={!invitaInput}>
-              <LinkIcon width={18} height={18} strokeWidth={1.5} color="white" className="inline mr-2" />
-              Genera link di invito
-            </Btn>
-          ) : (
-            <div className="flex flex-col gap-3">
-              <div className="rounded-md p-4 border-2" style={{ backgroundColor: COLORS.surfaceAlt, borderColor: COLORS.primaryLight }}>
-                <p className="text-xs text-ink-muted mb-1 font-semibold uppercase tracking-wide">Link di invito</p>
-                <p className="text-sm font-semibold break-all" style={{ color: COLORS.primary }}>{linkGenerato}</p>
-              </div>
-              <div className="rounded-md p-4" style={{ backgroundColor: COLORS.successLight }}>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: COLORS.success }}>Messaggio pronto</p>
-                <p className="text-sm leading-relaxed" style={{ color: COLORS.success }}>
-                  "Ciao! Ti invito a seguire i miei progressi su BrainTrainer → {linkGenerato}"
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Btn variant={linkCopiato ? "success" : "outline"} size="default" onClick={copiaLink}>
-                  <Copy width={16} height={16} strokeWidth={1.5} color={linkCopiato ? "white" : COLORS.primary} className="inline mr-1.5" />
-                  {linkCopiato ? "Copiato!" : "Copia link"}
-                </Btn>
-                <Btn size="default" onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Ciao! Seguimi su BrainTrainer → ${linkGenerato}`)}`, "_blank")}
-                  className="bg-[#25D366] text-white border-0">
-                  <ChatBubble width={16} height={16} strokeWidth={1.5} color="white" className="inline mr-1.5" />
-                  WhatsApp
-                </Btn>
-              </div>
+      <Modal open={showInvita} onClose={() => { setShowInvita(false); resetModal(); }} title="Invita un familiare">
+        {inviatoOk ? (
+          <div className="flex flex-col items-center py-6 gap-3">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.successLight }}>
+              <CheckCircle width={32} height={32} strokeWidth={1.5} color={COLORS.success} />
             </div>
-          )}
-        </div>
+            <p className="text-base font-bold text-center" style={{ color: COLORS.success }}>Invito inviato!</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5">
+            <p className="text-sm leading-relaxed" style={{ color: COLORS.inkSecondary }}>
+              Aggiungi un familiare inserendo i dati richiesti
+            </p>
+
+            {/* Contatto */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium" style={{ color: COLORS.inkPrimary }}>
+                Numero telefono o email
+              </label>
+              <input
+                type="text"
+                value={draft.contatto}
+                onChange={(e) => setDraft({ ...draft, contatto: e.target.value })}
+                placeholder="+39 333 000 0000 oppure email@..."
+                className={inputCls}
+              />
+            </div>
+
+            {/* Nome */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium" style={{ color: COLORS.inkPrimary }}>
+                Nome e cognome
+              </label>
+              <input
+                type="text"
+                value={draft.nome}
+                onChange={(e) => setDraft({ ...draft, nome: e.target.value })}
+                placeholder="Es. Marco Rossi"
+                className={inputCls}
+              />
+            </div>
+
+            {/* Parentela */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium" style={{ color: COLORS.inkPrimary }}>
+                Parentela
+              </label>
+              <select
+                value={draft.parentela}
+                onChange={(e) => setDraft({ ...draft, parentela: e.target.value })}
+                className={inputCls}
+                style={{ color: draft.parentela ? undefined : COLORS.inkMuted }}
+              >
+                <option value="" disabled>Seleziona parentela...</option>
+                {PARENTELE.map((p) => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={handleInvia}
+              disabled={!canInvia}
+              className="w-full py-3 rounded-full text-sm font-bold text-white transition-opacity"
+              style={{ backgroundColor: COLORS.primary, opacity: canInvia ? 1 : 0.45 }}
+            >
+              Manda invito
+            </button>
+          </div>
+        )}
       </Modal>
 
       {/* Modal conferma rimozione */}
       <Modal open={confirmRimuovi !== null} onClose={() => setConfirmRimuovi(null)} title="Rimuovi familiare">
         <div className="flex flex-col gap-4">
-          <p className="text-base text-ink-secondary leading-relaxed">
+          <p className="text-sm leading-relaxed" style={{ color: COLORS.inkSecondary }}>
             Sei sicuro di voler rimuovere{" "}
             <strong>{familiari.find((f) => f.id === confirmRimuovi)?.nome}</strong>?
             Non potrà più vedere i tuoi progressi.
@@ -437,47 +499,68 @@ function SezioneFamiglia() {
 }
 
 // ─── Card familiare ───────────────────────────────────────────────────────────
-function FamiliareCard({ familiare, avatarColor, onAggiorna, onRimuovi }: {
+function FamiliareCard({ familiare, onRimuovi }: {
   familiare: Familiare;
-  avatarColor: string;
-  onAggiorna: (data: Partial<Familiare>) => void;
   onRimuovi: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const collegato = familiare.collegato_da.replace(" fa", "");
+
+  const INFO_ROWS = [
+    { icon: <User width={15} height={15} strokeWidth={1.5} color={COLORS.inkMuted} />, label: "Nome",      value: familiare.nome },
+    { icon: <Group width={15} height={15} strokeWidth={1.5} color={COLORS.inkMuted} />, label: "Parentela", value: familiare.relazione },
+    { icon: <Phone width={15} height={15} strokeWidth={1.5} color={COLORS.inkMuted} />, label: "Telefono",  value: familiare.telefono },
+  ];
 
   return (
-    <div className="rounded-md border-2 overflow-hidden" style={{ borderColor: COLORS.border }}>
-      <button className="w-full flex items-center gap-3 p-4 bg-surface text-left" onClick={() => setExpanded(!expanded)}>
-        <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-black text-white flex-shrink-0"
-          style={{ backgroundColor: avatarColor }}>
-          {familiare.nome[0]}
+    <div
+      className="rounded-xl overflow-hidden bg-white"
+      style={{ boxShadow: "0 0 2px 0 rgba(0,0,0,0.15)" }}
+    >
+      {/* Header row */}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex flex-col gap-0.5">
+          <p className="text-sm font-bold" style={{ color: COLORS.inkPrimary }}>{familiare.nome}</p>
+          <p className="text-xs font-semibold" style={{ color: "#22C55E" }}>Collegato da {collegato}</p>
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-base font-bold text-ink">{familiare.nome}</p>
-            <div className="w-2 h-2 rounded-full bg-[#22C55E]" />
-            <span className="text-xs font-semibold text-[#16A34A]">Collegato</span>
-          </div>
-          <p className="text-sm text-ink-muted">{familiare.relazione} · da {familiare.collegato_da}</p>
-        </div>
-        <span className="text-ink-muted text-lg">{expanded ? "▲" : "▼"}</span>
+        {expanded
+          ? <NavArrowUp width={18} height={18} strokeWidth={1.5} color={COLORS.inkMuted} />
+          : <NavArrowDown width={18} height={18} strokeWidth={1.5} color={COLORS.inkMuted} />
+        }
       </button>
 
+      {/* Expanded detail */}
       {expanded && (
-        <div className="px-4 pb-4 pt-2 border-t" style={{ borderColor: COLORS.border, backgroundColor: COLORS.background }}>
-          <p className="text-sm font-semibold text-ink-muted mb-3 uppercase tracking-wide">Permessi di accesso</p>
-          <div className="flex flex-col gap-3">
-            {(["attivita", "medaglie", "progressi"] as const).map((perm) => (
-              <div key={perm} className="flex items-center justify-between">
-                <span className="text-base text-ink capitalize">{perm}</span>
-                <Toggle checked={familiare.permessi[perm]} onChange={(v) => onAggiorna({ permessi: { ...familiare.permessi, [perm]: v } })} />
+        <>
+          <div className="border-t" style={{ borderColor: COLORS.border }} />
+          <div className="flex flex-col">
+            {INFO_ROWS.map((row, i) => (
+              <div
+                key={row.label}
+                className="flex items-center justify-between px-4 py-2"
+                style={{ borderBottom: i < INFO_ROWS.length - 1 ? `1px solid ${COLORS.border}` : undefined }}
+              >
+                <div className="flex items-center gap-1.5">
+                  {row.icon}
+                  <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>{row.label}</span>
+                </div>
+                <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>{row.value || "—"}</span>
               </div>
             ))}
           </div>
-          <button onClick={onRimuovi} className="mt-3 text-sm font-semibold underline" style={{ color: "#C62828" }}>
-            Rimuovi familiare
-          </button>
-        </div>
+          <div className="px-4 py-3">
+            <button
+              onClick={onRimuovi}
+              className="w-full py-2.5 rounded-full text-sm font-bold"
+              style={{ backgroundColor: "rgba(243,71,79,0.2)", color: "#F3474F" }}
+            >
+              Rimuovi familiare
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

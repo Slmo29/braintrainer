@@ -31,6 +31,8 @@ import {
   Group,
   Heart,
   SunLight,
+  Puzzle,
+  Eye,
 } from "iconoir-react";
 import type { SVGProps } from "react";
 
@@ -66,6 +68,8 @@ export const ICON_MAP: Record<string, IconComponent> = {
   group:    Group,
   heart:    Heart,
   sun:      SunLight,
+  puzzle:   Puzzle,
+  eye:      Eye,
 };
 
 interface AppIconProps {

@@ -14,13 +14,15 @@ const oggiIndex = jsDay === 0 ? 7 : jsDay;
 const MEM_COLOR  = CATEGORIA_COLORS["memoria"]?.text    ?? "#7C3AED";
 const ATT_COLOR  = CATEGORIA_COLORS["attenzione"]?.text ?? "#DB2777";
 const LIN_COLOR  = CATEGORIA_COLORS["linguaggio"]?.text ?? "#16A34A";
+const ESE_COLOR  = CATEGORIA_COLORS["esecutive"]?.text     ?? "#D97706";
+const VIS_COLOR  = CATEGORIA_COLORS["visuospaziali"]?.text ?? "#0F766E";
 
 // Azzera i valori dei giorni futuri così le barre non appaiono
 const dati = mockProgressiSettimanali.map((g) => {
   const isFuturo = GIORNO_INDEX[g.giorno] > oggiIndex;
   return isFuturo
-    ? { giorno: g.giorno, memoria: 0, attenzione: 0, linguaggio: 0, futuro: true }
-    : { giorno: g.giorno, memoria: g.memoria, attenzione: g.attenzione, linguaggio: g.linguaggio, futuro: false };
+    ? { giorno: g.giorno, memoria: 0, attenzione: 0, linguaggio: 0, esecutive: 0, visuospaziali: 0, futuro: true }
+    : { giorno: g.giorno, memoria: g.memoria, attenzione: g.attenzione, linguaggio: g.linguaggio, esecutive: g.esecutive, visuospaziali: g.visuospaziali, futuro: false };
 });
 
 function CustomTick({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) {
@@ -40,7 +42,7 @@ function CustomTooltip({ active, payload, label }: {
   if (!active || !payload?.length) return null;
   const items = payload.filter((p) => p.value > 0);
   if (!items.length) return null;
-  const LABEL: Record<string, string> = { memoria: "Memoria", attenzione: "Attenzione", linguaggio: "Linguaggio" };
+  const LABEL: Record<string, string> = { memoria: "Memoria", attenzione: "Attenzione", linguaggio: "Linguaggio", esecutive: "Esecutive", visuospaziali: "Visuospaziali" };
   return (
     <div className="bg-surface rounded-md shadow-card-md px-3 py-2 border border-border">
       <p className="text-sm font-bold text-ink mb-1">{label}</p>
@@ -64,7 +66,9 @@ export default function GraficoSettimanale() {
           <Tooltip content={<CustomTooltip />} cursor={{ fill: `${COLORS.primaryLight}44`, radius: 8 }} />
           <Bar dataKey="memoria"    stackId="a" fill={MEM_COLOR} radius={[0, 0, 0, 0]} maxBarSize={40} />
           <Bar dataKey="attenzione" stackId="a" fill={ATT_COLOR} radius={[0, 0, 0, 0]} maxBarSize={40} />
-          <Bar dataKey="linguaggio" stackId="a" fill={LIN_COLOR} radius={[8, 8, 4, 4]} maxBarSize={40} />
+          <Bar dataKey="linguaggio" stackId="a" fill={LIN_COLOR} radius={[0, 0, 0, 0]} maxBarSize={40} />
+          <Bar dataKey="esecutive"     stackId="a" fill={ESE_COLOR} radius={[0, 0, 0, 0]} maxBarSize={40} />
+          <Bar dataKey="visuospaziali" stackId="a" fill={VIS_COLOR} radius={[8, 8, 4, 4]} maxBarSize={40} />
         </BarChart>
       </ResponsiveContainer>
 
@@ -74,6 +78,8 @@ export default function GraficoSettimanale() {
           { color: MEM_COLOR, label: "Memoria" },
           { color: ATT_COLOR, label: "Attenzione" },
           { color: LIN_COLOR, label: "Linguaggio" },
+          { color: ESE_COLOR, label: "Esecutive" },
+          { color: VIS_COLOR, label: "Visuospaziali" },
         ].map((l) => (
           <div key={l.label} className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: l.color }} />

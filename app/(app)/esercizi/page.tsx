@@ -1,27 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import Card from "@/components/ui/card";
-import { mockEsercizi, mockCategorie, mockScoreCategorie } from "@/lib/mock-data";
+import { mockEsercizi, mockCategorie, mockScoreCategorie, mockEserciziDelGiornoList } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
-import { Timer, Lock, Running } from "iconoir-react";
+import { Timer, Lock, Running, Check } from "iconoir-react";
 import { useUserStore } from "@/lib/store";
 import { PausaAttivaModal } from "@/components/ui/pausa-attiva-modal";
 
 const LIMITE_ESERCIZI_GIORNO = 5;
 
 const TABS = [
-  { id: "memoria",    label: "Memoria" },
-  { id: "attenzione", label: "Attenzione" },
-  { id: "linguaggio", label: "Linguaggio" },
+  { id: "memoria",        label: "Memoria" },
+  { id: "attenzione",     label: "Attenzione" },
+  { id: "linguaggio",     label: "Linguaggio" },
+  { id: "esecutive",      label: "Esecutive" },
+  { id: "visuospaziali",  label: "Visuospaziali" },
 ];
 
 export default function EserciziPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { nome, isGuest, eserciziFattiOggi, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio } = useUserStore();
-  const [tab, setTab] = useState("memoria");
+  const categoriaIniziale = TABS.find((t) => t.id === searchParams.get("categoria"))?.id ?? "memoria";
+  const [tab, setTab] = useState(categoriaIniziale);
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    activeTabRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  }, [tab]);
   const [mostraPausa, setMostraPausa] = useState(false);
   const [mostraConfermaInterruzione, setMostraConfermaInterruzione] = useState(false);
   const [esercizioTarget, setEsercizioTarget] = useState<string | null>(null);
@@ -29,9 +40,18 @@ export default function EserciziPage() {
   // TODO: sostituire con query Supabase — SELECT livello FROM progressi_utente WHERE categoria = tab AND user_id = ...
   const livelloUtente = mockScoreCategorie.find((c) => c.categoria.toLowerCase() === tab)?.livello ?? 1;
 
+  const esercizioDelGiorno = mockEserciziDelGiornoList.find((e) => e.categoria_id === tab) ?? null;
+
   const eserciziFiltrati = mockEsercizi
     .filter((e) => e.categoria_id === tab)
-    .filter((e) => isGuest || e.livello <= livelloUtente);
+    .filter((e) => isGuest || e.livello <= livelloUtente)
+    .filter((e) => e.id !== esercizioDelGiorno?.id);
+
+  function formatTempo(sec: number) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  }
 
   function isLocked(livello: number): boolean {
     if (isGuest) return livello > 1;
@@ -59,7 +79,7 @@ export default function EserciziPage() {
         <h1 className="text-2xl font-extrabold text-ink">Libreria esercizi</h1>
 
         {/* Tab bar */}
-        <div className="flex mt-4 overflow-x-auto scrollbar-none -mx-4 px-4">
+        <div ref={tabBarRef} className="flex mt-4 overflow-x-auto scrollbar-none -mx-4 px-4">
           {TABS.map((t) => {
             const active = tab === t.id;
             const cc = CATEGORIA_COLORS[t.id];
@@ -67,6 +87,7 @@ export default function EserciziPage() {
             return (
               <button
                 key={t.id}
+                ref={active ? activeTabRef : null}
                 onClick={() => setTab(t.id)}
                 className="flex-shrink-0 flex items-center gap-1.5 px-4 py-3 text-base font-semibold border-b-2 transition-all mr-1"
                 style={{
@@ -88,8 +109,91 @@ export default function EserciziPage() {
         </div>
       </div>
 
+      {/* ── Esercizio del giorno ─────────────────────────────────────── */}
+      {esercizioDelGiorno && (() => {
+        const edgCat = mockCategorie.find((c) => c.id === esercizioDelGiorno.categoria_id);
+        const edgCc = edgCat ? CATEGORIA_COLORS[edgCat.id] : null;
+        return (
+          <div className="px-4 pt-4 flex flex-col gap-2">
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: COLORS.inkMuted }}>
+              Esercizio del giorno
+            </p>
+            <button
+              className="text-left w-full"
+              onClick={() => handleClickEsercizio(esercizioDelGiorno.id, false)}
+            >
+              <div
+                className="rounded-2xl px-4 py-4 flex items-center gap-4"
+                style={{
+                  backgroundColor: esercizioDelGiorno.completato ? `${COLORS.primary}08` : "rgba(24,145,177,0.05)",
+                  border: `0.5px solid ${COLORS.primary}`,
+                  boxShadow: "0 2px 8px rgba(24,145,177,0.10)",
+                }}
+              >
+                {/* Icon */}
+                <div
+                  className="w-14 h-14 rounded-md flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: edgCc?.bg ?? COLORS.surfaceAlt }}
+                >
+                  {esercizioDelGiorno.completato ? (
+                    <Check width={28} height={28} strokeWidth={1.5} color={edgCc?.text ?? COLORS.primary} />
+                  ) : (
+                    <AppIcon name={edgCat?.icona ?? "brain"} size={32} color={edgCc?.text ?? COLORS.primary} />
+                  )}
+                </div>
+                {/* Text */}
+                <div className="flex-1 min-w-0">
+                  <h3
+                    className={`text-base font-bold leading-snug ${esercizioDelGiorno.completato ? "line-through" : ""}`}
+                    style={{ color: COLORS.inkPrimary }}
+                  >
+                    {esercizioDelGiorno.titolo}
+                  </h3>
+                  {esercizioDelGiorno.completato && isGuest ? (
+                    <Link href="/onboarding/registrati" onClick={(e) => e.stopPropagation()}>
+                      <span className="text-xs font-semibold underline" style={{ color: COLORS.primary }}>
+                        Registrati per sbloccare i risultati
+                      </span>
+                    </Link>
+                  ) : esercizioDelGiorno.completato && esercizioDelGiorno.risultato ? (
+                    <div className="flex items-center gap-1 text-xs" style={{ color: COLORS.inkMuted }}>
+                      <span>{formatTempo(esercizioDelGiorno.risultato.tempo_secondi)}</span>
+                      <span>·</span>
+                      <span>{esercizioDelGiorno.risultato.accuratezza}% accuratezza</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 text-xs" style={{ color: COLORS.inkMuted }}>
+                      <Timer width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} />
+                      <span>{Math.ceil((esercizioDelGiorno.durata_stimata ?? 60) / 60)} minuti</span>
+                      <span>·</span>
+                      <span>Livello {esercizioDelGiorno.livello}/6</span>
+                    </div>
+                  )}
+                </div>
+                {/* Trailing */}
+                {esercizioDelGiorno.completato ? (
+                  <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: COLORS.primaryLight }}
+                  >
+                    <Check width={16} height={16} strokeWidth={2} color={COLORS.primary} />
+                  </div>
+                ) : (
+                  <span className="text-xl flex-shrink-0" style={{ color: COLORS.inkMuted }}>›</span>
+                )}
+              </div>
+            </button>
+          </div>
+        );
+      })()}
+
       {/* ── Lista esercizi ───────────────────────────────────────────── */}
       <div className="flex flex-col gap-3 px-4 pt-4">
+        {esercizioDelGiorno && (
+          <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: COLORS.inkMuted }}>
+            Altri esercizi
+          </p>
+        )}
         {eserciziFiltrati.map((esercizio) => {
           const cat = mockCategorie.find((c) => c.id === esercizio.categoria_id);
           const cc = cat ? CATEGORIA_COLORS[cat.id] : null;

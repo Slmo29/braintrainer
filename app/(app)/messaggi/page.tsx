@@ -104,7 +104,7 @@ export default function MessaggiPage() {
                   </span>
                   <span className="ml-auto text-xs" style={{ color: COLORS.inkMuted }}>{msg.data}</span>
                 </div>
-                <p className="text-sm truncate" style={{ color: COLORS.inkSecondary }}>
+                <p className="text-sm" style={{ color: COLORS.inkSecondary }}>
                   {msg.testo}
                 </p>
               </div>

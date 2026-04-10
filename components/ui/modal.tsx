@@ -32,7 +32,7 @@ export default function Modal({ open, onClose, title, children, className }: Mod
       {/* Sheet */}
       <div
         className={cn(
-          "relative z-10 bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto",
+          "relative z-10 bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[80vh] overflow-y-auto mb-[96px] sm:mb-0",
           className
         )}
       >
@@ -41,14 +41,8 @@ export default function Modal({ open, onClose, title, children, className }: Mod
 
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between mb-5">
+          <div className="mb-5">
             <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-            <button
-              onClick={onClose}
-              className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-xl active:scale-95"
-            >
-              ×
-            </button>
           </div>
         )}
 

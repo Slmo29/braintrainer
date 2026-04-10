@@ -47,6 +47,8 @@ export const CATEGORIA_COLORS: Record<string, { bg: string; text: string; border
   memoria:    { bg: "#EDE0F5", text: "#7B50A6", border: "#7B50A6" },
   attenzione: { bg: "#FCE4EC", text: "#BA1751", border: "#BA1751" },
   linguaggio: { bg: "#D4EDDA", text: "#297248", border: "#297248" },
+  esecutive:     { bg: "#FEF3C7", text: "#D97706", border: "#D97706" },
+  visuospaziali: { bg: "#CCFBF1", text: "#0F766E", border: "#0F766E" },
 };
 
 // Difficoltà badge

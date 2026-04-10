@@ -5,10 +5,10 @@ import Link from "next/link";
 import Card from "@/components/ui/card";
 import Btn from "@/components/ui/btn";
 import { useUserStore } from "@/lib/store";
-import { mockEsercizioDelGiorno, mockEsercizioDelGiornoCompletato, mockEsercizioDelGiornoRisultato, mockCategorie, mockProgressiSettimanali, mockSessioniRecenti, mockMessaggiFamiliari } from "@/lib/mock-data";
+import { mockEsercizioDelGiorno, mockEserciziDelGiornoList, mockCategorie, mockProgressiSettimanali, mockSessioniRecenti, mockMessaggiFamiliari } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
-import { Timer, Running, Phone, Palette, Leaf, Lock, User, StatsReport, Calendar, Medal, Bell, ChatLines } from "iconoir-react";
+import { Timer, Running, Phone, Palette, Leaf, Lock, ChatLines, Check } from "iconoir-react";
 import { PausaAttivaModal, CheckCircles } from "@/components/ui/pausa-attiva-modal";
 
 const GIORNO_INDEX: Record<string, number> = { Lun: 1, Mar: 2, Mer: 3, Gio: 4, Ven: 5, Sab: 6, Dom: 7 };
@@ -142,12 +142,6 @@ function PausaAttivaView({ secondiRimasti }: { secondiRimasti: number }) {
   );
 }
 
-const UPSELL_FEATURES = [
-  { label: "Esercizi di diversi livelli",  icon: StatsReport },
-  { label: "Traccia dei tuoi progressi",   icon: Calendar },
-  { label: "Medaglie, trofei e molto altro", icon: Medal },
-  { label: "Promemoria personalizzati",    icon: Bell },
-];
 
 export default function HomePage() {
   const { nome, isGuest, eserciziFattiOggi, pausaAttivaRichiesta, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio } = useUserStore();
@@ -178,11 +172,9 @@ export default function HomePage() {
 
   const jsDay = new Date().getDay();
   const oggiIndex = jsDay === 0 ? 7 : jsDay;
-  const esercizioGiorno = mockEsercizioDelGiorno;
-  const completato = mockEsercizioDelGiornoCompletato;
-  const risultato = mockEsercizioDelGiornoRisultato;
-  const catGiorno = mockCategorie.find((c) => c.id === esercizioGiorno.categoria_id);
-  const catColors = catGiorno ? CATEGORIA_COLORS[catGiorno.id] : null;
+
+  const completatiOggi = mockEserciziDelGiornoList.filter((e) => e.completato).length;
+  const totaleEsercizi = mockEserciziDelGiornoList.length;
 
   function formatTempo(sec: number) {
     const m = Math.floor(sec / 60);
@@ -234,128 +226,88 @@ export default function HomePage() {
           <PausaAttivaView secondiRimasti={secondiRimasti} />
         ) : (
           <>
-            {/* Esercizio del Giorno */}
+            {/* Esercizi del Giorno */}
             <div>
-              <h2 className="text-lg font-bold text-ink mb-3">Esercizio del Giorno</h2>
-              <Card padding="md" style={{ backgroundColor: "#FFFFFF" }}>
-                <div className="flex items-center gap-2 mb-3">
-                  {catColors && (
-                    <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full" style={{ backgroundColor: catColors.bg, color: catColors.text }}>
-                      <AppIcon name={catGiorno?.icona ?? "brain"} size={14} color={catColors.text} />
-                      {catGiorno?.nome}
-                    </span>
-                  )}
-                  {completato && (
-                    <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full" style={{ backgroundColor: "#DCFCE7", color: "#16A34A" }}>
-                      <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                      </svg>
-                      Completato
-                    </span>
-                  )}
-                  {!completato && (
-                    <div className="ml-auto flex items-center gap-1 text-xs" style={{ color: COLORS.inkMuted }}>
-                      <Timer width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} />
-                      <span>{Math.ceil((esercizioGiorno.durata_stimata ?? 60) / 60)} minuti</span>
-                      <span>·</span>
-                      {isGuest ? (
-                        <span className="flex items-center gap-1"><Lock width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} /> Livello</span>
+              <h2 className="text-lg font-bold text-ink mb-3">Esercizi del giorno</h2>
+
+              {/* Counter + progress bar */}
+              <div className="rounded-2xl px-4 py-3 mb-2 flex flex-col gap-2" style={{ backgroundColor: "#FFFFFF", boxShadow: "0px 0px 2px rgba(0,0,0,0.12)" }}>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-ink">Completati oggi</span>
+                  <span className="text-sm font-bold" style={{ color: COLORS.primary }}>{completatiOggi}/{totaleEsercizi}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: `${COLORS.primary}33` }}>
+                  <div className="h-full rounded-full transition-all" style={{ backgroundColor: COLORS.primary, width: `${(completatiOggi / totaleEsercizi) * 100}%` }} />
+                </div>
+              </div>
+
+              {/* Lista esercizi */}
+              <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#FFFFFF", boxShadow: "0px 0px 2px rgba(0,0,0,0.12)" }}>
+                {mockEserciziDelGiornoList.map((esercizio, i) => {
+                  const cat = mockCategorie.find((c) => c.id === esercizio.categoria_id);
+                  const cc = cat ? CATEGORIA_COLORS[cat.id] : null;
+                  const isFirstNonCompleted = !esercizio.completato && mockEserciziDelGiornoList.slice(0, i).every((e) => e.completato);
+                  const isLast = i === mockEserciziDelGiornoList.length - 1;
+
+                  const row = (
+                    <div
+                      className="flex items-center justify-between px-3 py-3"
+                      style={{ backgroundColor: isFirstNonCompleted ? `${COLORS.primary}08` : "transparent" }}
+                    >
+                      <div className="flex flex-col gap-1.5 flex-1 min-w-0 mr-3">
+                        {/* Category pill */}
+                        {cc && cat && (
+                          <span className="self-start text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: cc.bg, color: cc.text }}>
+                            {cat.nome}
+                          </span>
+                        )}
+                        {/* Name */}
+                        <span
+                          className={`text-sm font-semibold leading-snug ${esercizio.completato ? "line-through" : ""}`}
+                          style={{ color: esercizio.completato ? COLORS.inkMuted : COLORS.inkPrimary }}
+                        >
+                          {esercizio.titolo}
+                        </span>
+                        {/* Meta */}
+                        <div className="flex items-center gap-1 text-xs font-medium">
+                          {esercizio.completato && isGuest ? (
+                            <Link href="/onboarding/registrati" onClick={(e) => e.stopPropagation()}>
+                              <span className="underline font-semibold" style={{ color: COLORS.primary }}>
+                                Registrati per sbloccare i risultati
+                              </span>
+                            </Link>
+                          ) : esercizio.completato && esercizio.risultato ? (
+                            <span style={{ color: COLORS.inkMuted }}>
+                              {formatTempo(esercizio.risultato.tempo_secondi)} minuti · {esercizio.risultato.accuratezza}% accuratezza
+                            </span>
+                          ) : (
+                            <span style={{ color: COLORS.inkMuted }}>
+                              {Math.ceil((esercizio.durata_stimata ?? 60) / 60)} minuti · Livello {esercizio.livello}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Right icon */}
+                      {esercizio.completato ? (
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.primaryLight }}>
+                          <Check width={14} height={14} strokeWidth={2} color={COLORS.primary} />
+                        </div>
                       ) : (
-                        <span>Livello {esercizioGiorno.livello}/6</span>
+                        <span className="text-lg font-bold flex-shrink-0" style={{ color: COLORS.primary }}>›</span>
                       )}
                     </div>
-                  )}
-                </div>
-                <h3 className="text-lg font-bold text-ink">{esercizioGiorno.titolo}</h3>
+                  );
 
-                {completato ? (
-                  <div className="mt-4 flex flex-col gap-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { label: "Tempo",       value: formatTempo(risultato.tempo_secondi), icon: <Timer width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
-                        { label: "Accuratezza", value: `${risultato.precisione}%`,            icon: <StatsReport width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
-                      ].map((stat) => (
-                        <div key={stat.label} className="flex flex-col items-center gap-1 rounded-xl py-2" style={{ backgroundColor: COLORS.primaryLight, border: `1px solid ${COLORS.primary}22` }}>
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}18` }}>
-                            {stat.icon}
-                          </div>
-                          <span className="text-base font-extrabold" style={{ color: COLORS.primary, filter: isGuest ? "blur(5px)" : "none", userSelect: isGuest ? "none" : "auto" }}>{stat.value}</span>
-                          <span className="text-xs font-medium" style={{ color: COLORS.inkMuted }}>{stat.label}</span>
-                        </div>
-                      ))}
+                  return (
+                    <div key={esercizio.id}>
+                      <Link href={esercizio.completato ? "#" : `/esercizi/${esercizio.id}`}>{row}</Link>
+                      {!isLast && <div style={{ height: 1, backgroundColor: COLORS.border }} />}
                     </div>
-                    {isGuest && (
-                      <Link href="/onboarding/registrati">
-                        <div className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: `${COLORS.primary}10`, border: `1px solid ${COLORS.primary}40` }}>
-                          <Lock width={22} height={22} strokeWidth={1.5} color={COLORS.primary} />
-                          <div className="flex-1">
-                            <p className="text-sm font-extrabold text-ink">Sblocca i tuoi risultati</p>
-                            <p className="text-xs mt-0.5" style={{ color: COLORS.inkSecondary }}>Registrati per vedere tempo, precisione e livelli</p>
-                          </div>
-                          <span className="text-base font-bold" style={{ color: COLORS.primary }}>›</span>
-                        </div>
-                      </Link>
-                    )}
-                  </div>
-                ) : (
-                  <div className="mt-4">
-                    {eserciziFattiOggi >= LIMITE_ESERCIZI_GIORNO ? (
-                      <button
-                        className="w-full py-3 rounded-xl text-sm font-bold text-white"
-                        style={{ backgroundColor: COLORS.primary }}
-                        onClick={() => setMostraPausa(true)}
-                      >
-                        Inizia ora
-                      </button>
-                    ) : (
-                      <Link href={`/esercizi/${esercizioGiorno.id}`}>
-                        <button
-                          className="w-full py-3 rounded-xl text-sm font-bold text-white"
-                          style={{ backgroundColor: COLORS.primary }}
-                        >
-                          Inizia ora
-                        </button>
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </Card>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Card upsell — solo ospite che non ha ancora completato l'esercizio del giorno */}
-            {isGuest && !completato && (
-              <div className="rounded-xl p-4 flex flex-col gap-4" style={{ border: `1px solid ${COLORS.primary}`, backgroundColor: "#E8F1F3" }}>
-                {/* Header */}
-                <div className="flex flex-col gap-1">
-                  <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.primaryLight }}>
-                    <User width={28} height={28} strokeWidth={1.5} color={COLORS.primary} />
-                  </div>
-                  <p className="text-sm font-bold text-ink whitespace-nowrap">Sblocca la tua esperienza completa</p>
-                  <p className="text-sm" style={{ color: COLORS.inkSecondary }}>
-                    Registrati e tieni traccia dei tuoi progressi, livelli e molto altro.
-                  </p>
-                </div>
-
-                {/* Feature cards 2×2 */}
-                <div className="grid grid-cols-2 gap-2">
-                  {UPSELL_FEATURES.map(({ label, icon: Icon }) => (
-                    <div key={label} className="bg-white rounded-lg p-3 flex flex-col gap-2">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primaryLight }}>
-                        <Icon width={13} height={13} strokeWidth={1.5} color={COLORS.primary} />
-                      </div>
-                      <p className="text-xs font-bold text-ink leading-tight">{label}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CTA */}
-                <Link href="/onboarding/registrati">
-                  <button className="w-full py-3 rounded-full text-sm font-bold text-white" style={{ backgroundColor: COLORS.primary }}>
-                    Registrati gratuitamente
-                  </button>
-                </Link>
-              </div>
-            )}
 
             {/* Categorie */}
             <div>
@@ -419,7 +371,7 @@ export default function HomePage() {
           nome={nome ?? ""}
           isGuest={isGuest}
           onVaiPausa={() => { setMostraPausa(false); setPausaAttivaInizio(Date.now()); }}
-          onContinua={() => { setMostraPausa(false); window.location.href = `/esercizi/${esercizioGiorno.id}`; }}
+          onContinua={() => { setMostraPausa(false); window.location.href = `/esercizi/${mockEsercizioDelGiorno.id}`; }}
           onClose={() => setMostraPausa(false)}
         />
       )}

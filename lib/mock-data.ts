@@ -9,9 +9,11 @@ export const mockUser = {
 
 // ─── Mock Categorie ───────────────────────────────────────────────────────────
 export const mockCategorie = [
-  { id: "memoria", nome: "Memoria", icona: "brain", colore: "#2563EB", descrizione: "Ricorda, memorizza, richiama" },
+  { id: "memoria",    nome: "Memoria",    icona: "brain",  colore: "#2563EB", descrizione: "Ricorda, memorizza, richiama" },
   { id: "attenzione", nome: "Attenzione", icona: "target", colore: "#7C3AED", descrizione: "Concentrati, osserva, reagisci" },
-  { id: "linguaggio", nome: "Linguaggio", icona: "chat", colore: "#16A34A", descrizione: "Parole, frasi, significati" },
+  { id: "linguaggio", nome: "Linguaggio", icona: "chat",   colore: "#16A34A", descrizione: "Parole, frasi, significati" },
+  { id: "esecutive",     nome: "Esecutive",     icona: "puzzle", colore: "#D97706", descrizione: "Pianifica, organizza, decidi" },
+  { id: "visuospaziali", nome: "Visuospaziali", icona: "eye",    colore: "#0F766E", descrizione: "Percepisci, orienta, visualizza" },
 ];
 
 // ─── Mock Esercizi ────────────────────────────────────────────────────────────
@@ -93,14 +95,111 @@ export const mockEsercizi = [
       soluzioni: ["CASA", "FIORE", "LUNA"],
     },
   },
+  {
+    id: "torre-hanoi",
+    categoria_id: "esecutive",
+    titolo: "Torre di Hanoi",
+    descrizione: "Sposta i dischi da un piolo all'altro seguendo le regole.",
+    difficolta: "medio",
+    livello: 1,
+    durata_stimata: 120,
+    beneficio: "Allena la pianificazione, la flessibilità cognitiva e il problem solving.",
+    tipo: "torre_hanoi",
+    config: { dischi: 3 },
+  },
+  {
+    id: "ordina-sequenza",
+    categoria_id: "esecutive",
+    titolo: "Ordina la Sequenza",
+    descrizione: "Rimetti in ordine logico i passaggi di un'azione quotidiana.",
+    difficolta: "facile",
+    livello: 2,
+    durata_stimata: 90,
+    beneficio: "Stimola la pianificazione e l'organizzazione delle azioni.",
+    tipo: "ordina_sequenza",
+    config: { sequenze: 4 },
+  },
+  {
+    id: "rotazione-mentale",
+    categoria_id: "visuospaziali",
+    titolo: "Rotazione Mentale",
+    descrizione: "Identifica la forma ruotata tra le opzioni proposte.",
+    difficolta: "medio",
+    livello: 1,
+    durata_stimata: 90,
+    beneficio: "Potenzia la capacità di manipolare mentalmente oggetti nello spazio.",
+    tipo: "rotazione_mentale",
+    config: { forme: 6, tempo_per_domanda: 10 },
+  },
+  {
+    id: "trova-percorso",
+    categoria_id: "visuospaziali",
+    titolo: "Trova il Percorso",
+    descrizione: "Individua il percorso più breve per raggiungere la destinazione.",
+    difficolta: "facile",
+    livello: 2,
+    durata_stimata: 75,
+    beneficio: "Sviluppa l'orientamento spaziale e la memoria topografica.",
+    tipo: "trova_percorso",
+    config: { griglia: 4 },
+  },
 ];
 
-export const mockEsercizioDelGiorno = mockEsercizi[0];
+export const mockEsercizioDelGiorno = mockEsercizi[2]; // "anagramma" — primo non completato oggi
+
+// TODO: da Supabase — SELECT * FROM esercizi_del_giorno WHERE data = TODAY() JOIN sessioni
+export const mockEserciziDelGiornoList = [
+  {
+    id: "ricorda-parole",
+    titolo: "Ricorda le Parole",
+    categoria_id: "memoria",
+    livello: 1,
+    durata_stimata: 90,
+    completato: true,
+    risultato: { tempo_secondi: 108, accuratezza: 92 },
+  },
+  {
+    id: "stroop-test",
+    titolo: "Test Stroop",
+    categoria_id: "attenzione",
+    livello: 2,
+    durata_stimata: 60,
+    completato: true,
+    risultato: { tempo_secondi: 130, accuratezza: 48 },
+  },
+  {
+    id: "anagramma",
+    titolo: "Anagramma",
+    categoria_id: "linguaggio",
+    livello: 1,
+    durata_stimata: 120,
+    completato: false,
+    risultato: null,
+  },
+  {
+    id: "esercizio-esecutive",
+    titolo: "Esercizio Esecutive",
+    categoria_id: "esecutive",
+    livello: 1,
+    durata_stimata: 120,
+    completato: false,
+    risultato: null,
+  },
+  {
+    id: "esercizio-visuospaziali",
+    titolo: "Esercizio Visuospaziali",
+    categoria_id: "visuospaziali",
+    livello: 1,
+    durata_stimata: 120,
+    completato: false,
+    risultato: null,
+  },
+] as const;
 
 // TODO: in futuro questo verrà da Supabase (sessioni di oggi)
 // TODO: sostituire con query Supabase — SELECT count(*) FROM sessioni WHERE utente_id = ? AND data = TODAY()
 // La logica di blocco è: se sessioni_oggi >= LIMITE_ESERCIZI_GIORNO (5) → mostra modale pausa attiva
-export const mockEserciziOggi = 5;
+export const mockEserciziOggi = mockEserciziDelGiornoList.filter((e) => e.completato).length;
 export const mockEsercizioDelGiornoCompletato = false;
 export const mockEsercizioDelGiornoRisultato = {
   tempo_secondi: 108,   // 1:48
@@ -119,14 +218,15 @@ export const mockMedaglie = [
 ];
 
 // ─── Mock Progressi ───────────────────────────────────────────────────────────
+// TODO: aggiungere dati reali per tipo4/tipo5 quando i nomi sono definiti
 export const mockProgressiSettimanali = [
-  { giorno: "Lun", esercizi: 2, memoria: 1, attenzione: 1, linguaggio: 0 },
-  { giorno: "Mar", esercizi: 1, memoria: 0, attenzione: 0, linguaggio: 1 },
-  { giorno: "Mer", esercizi: 3, memoria: 1, attenzione: 1, linguaggio: 1 },
-  { giorno: "Gio", esercizi: 0, memoria: 0, attenzione: 0, linguaggio: 0 },
-  { giorno: "Ven", esercizi: 2, memoria: 1, attenzione: 0, linguaggio: 1 },
-  { giorno: "Sab", esercizi: 1, memoria: 1, attenzione: 0, linguaggio: 0 },
-  { giorno: "Dom", esercizi: 1, memoria: 0, attenzione: 0, linguaggio: 1 },
+  { giorno: "Lun", esercizi: 3, memoria: 1, attenzione: 1, linguaggio: 0, esecutive: 1, visuospaziali: 0 },
+  { giorno: "Mar", esercizi: 2, memoria: 0, attenzione: 0, linguaggio: 1, esecutive: 0, visuospaziali: 1 },
+  { giorno: "Mer", esercizi: 5, memoria: 1, attenzione: 1, linguaggio: 1, esecutive: 1, visuospaziali: 1 },
+  { giorno: "Gio", esercizi: 0, memoria: 0, attenzione: 0, linguaggio: 0, esecutive: 0, visuospaziali: 0 },
+  { giorno: "Ven", esercizi: 4, memoria: 1, attenzione: 0, linguaggio: 1, esecutive: 1, visuospaziali: 1 },
+  { giorno: "Sab", esercizi: 2, memoria: 1, attenzione: 0, linguaggio: 0, esecutive: 0, visuospaziali: 1 },
+  { giorno: "Dom", esercizi: 2, memoria: 0, attenzione: 0, linguaggio: 1, esecutive: 1, visuospaziali: 0 },
 ];
 
 export const mockScoreCategorie = [
@@ -205,13 +305,59 @@ export const mockScoreCategorie = [
       { label: "10 Apr", livello: 5 },
     ],
   },
+  {
+    categoria: "Esecutive", icona: "puzzle", colore: "#D97706", score: 68,
+    trend: "crescita" as const, livello: 2, sessioni: 7,
+    descrizione: "Le tue funzioni esecutive sono al 68%",
+    storico: [
+      { label: "6 Mar",  score: 48 }, { label: "10 Mar", score: 52 },
+      { label: "14 Mar", score: 54 }, { label: "18 Mar", score: 57 },
+      { label: "22 Mar", score: 59 }, { label: "25 Mar", score: 61 },
+      { label: "27 Mar", score: 62 }, { label: "29 Mar", score: 63 },
+      { label: "31 Mar", score: 64 }, { label: "1 Apr",  score: 65 },
+      { label: "2 Apr",  score: 66 }, { label: "3 Apr",  score: 68 },
+    ],
+    storicoLivello: [
+      { label: "6 Mar",  livello: 1 }, { label: "14 Mar", livello: 1 },
+      { label: "22 Mar", livello: 1 }, { label: "29 Mar", livello: 1 },
+      { label: "31 Mar", livello: 2 }, { label: "1 Apr",  livello: 2 },
+      { label: "2 Apr",  livello: 2 }, { label: "3 Apr",  livello: 2 },
+      { label: "6 Apr",  livello: 2 }, { label: "7 Apr",  livello: 2 },
+      { label: "8 Apr",  livello: 2 }, { label: "9 Apr",  livello: 3 },
+      { label: "10 Apr", livello: 3 },
+    ],
+  },
+  {
+    categoria: "Visuospaziali", icona: "eye", colore: "#0F766E", score: 57,
+    trend: "stabile" as const, livello: 1, sessioni: 6,
+    descrizione: "Le tue abilità visuospaziali sono al 57%",
+    storico: [
+      { label: "6 Mar",  score: 54 }, { label: "10 Mar", score: 56 },
+      { label: "14 Mar", score: 55 }, { label: "18 Mar", score: 58 },
+      { label: "22 Mar", score: 56 }, { label: "25 Mar", score: 57 },
+      { label: "27 Mar", score: 58 }, { label: "29 Mar", score: 57 },
+      { label: "31 Mar", score: 56 }, { label: "1 Apr",  score: 57 },
+      { label: "2 Apr",  score: 58 }, { label: "3 Apr",  score: 57 },
+    ],
+    storicoLivello: [
+      { label: "6 Mar",  livello: 1 }, { label: "14 Mar", livello: 1 },
+      { label: "22 Mar", livello: 1 }, { label: "29 Mar", livello: 1 },
+      { label: "31 Mar", livello: 1 }, { label: "1 Apr",  livello: 1 },
+      { label: "2 Apr",  livello: 1 }, { label: "3 Apr",  livello: 1 },
+      { label: "6 Apr",  livello: 1 }, { label: "7 Apr",  livello: 1 },
+      { label: "8 Apr",  livello: 1 }, { label: "9 Apr",  livello: 1 },
+      { label: "10 Apr", livello: 1 },
+    ],
+  },
 ];
 
 export const mockSessioniRecenti = [
-  { titolo: "Ricorda le Parole", categoria: "Memoria", score: 80, data: "Oggi", icona: "brain", trend: "crescita" as const },
-  { titolo: "Test Stroop", categoria: "Attenzione", score: 70, data: "Ieri", icona: "target", trend: "stabile" as const },
-  { titolo: "Anagramma", categoria: "Linguaggio", score: 100, data: "Ieri", icona: "chat", trend: "calo" as const },
-  { titolo: "Sequenza di Colori", categoria: "Memoria", score: 60, data: "2 giorni fa", icona: "brain", trend: "stabile" as const },
+  { titolo: "Ricorda le Parole",  categoria: "Memoria",       score: 80,  data: "Oggi",        icona: "brain",  trend: "crescita" as const },
+  { titolo: "Test Stroop",        categoria: "Attenzione",    score: 70,  data: "Ieri",         icona: "target", trend: "stabile"  as const },
+  { titolo: "Anagramma",          categoria: "Linguaggio",    score: 100, data: "Ieri",         icona: "chat",   trend: "calo"     as const },
+  { titolo: "Torre di Hanoi",     categoria: "Esecutive",     score: 72,  data: "Ieri",         icona: "puzzle", trend: "crescita" as const },
+  { titolo: "Rotazione Mentale",  categoria: "Visuospaziali", score: 58,  data: "2 giorni fa",  icona: "eye",    trend: "stabile"  as const },
+  { titolo: "Sequenza di Colori", categoria: "Memoria",       score: 60,  data: "2 giorni fa",  icona: "brain",  trend: "stabile"  as const },
 ];
 
 // ─── Mock Messaggi Famigliari ─────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Card from "@/components/ui/card";
-import { mockMedaglie, mockProgressiSettimanali, mockScoreCategorie, mockStoricoGiornaliero, mockTotaleSettimanaScorsa, mockEsercizioDelGiorno } from "@/lib/mock-data";
+import { mockMedaglie, mockProgressiSettimanali, mockScoreCategorie, mockStoricoGiornaliero, mockTotaleSettimanaScorsa, mockEsercizioDelGiorno, mockCategorie } from "@/lib/mock-data";
 import { useUserStore } from "@/lib/store";
 import { COLORS, CATEGORIA_COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
@@ -240,6 +240,16 @@ const TREND_TEXTS: Record<string, Record<string, string>> = {
     stabile:  "Il tuo linguaggio è stabile. Prova a fare qualche esercizio in più per portarlo al livello successivo!",
     calo:     "Il tuo linguaggio ha bisogno di un po' di allenamento. Riprendi gli esercizi e tornerà a salire!",
   },
+  Esecutive: {
+    crescita: "Le tue funzioni esecutive stanno migliorando. Stai pianificando e organizzando sempre meglio!",
+    stabile:  "Le tue funzioni esecutive sono stabili. Qualche esercizio in più le porterà al livello successivo!",
+    calo:     "Le tue funzioni esecutive hanno bisogno di allenamento. Riprendi gli esercizi e torneranno a salire!",
+  },
+  Visuospaziali: {
+    crescita: "Le tue abilità visuospaziali stanno migliorando. Stai percependo e orientandoti sempre meglio!",
+    stabile:  "Le tue abilità visuospaziali sono stabili. Continua ad allenarti per migliorare ancora!",
+    calo:     "Le tue abilità visuospaziali hanno bisogno di allenamento. Riprendi gli esercizi!",
+  },
 };
 
 function AreaCerebraleCard({ cat }: { cat: typeof mockScoreCategorie[0] }) {
@@ -419,7 +429,7 @@ function DettaglioGiorno({ dateStr }: { dateStr: string }) {
       <p className="text-base font-bold text-ink">{isToday ? "Oggi" : label}</p>
       {sessioni.length === 0 ? (
         isToday ? (
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col">
             <p className="text-base" style={{ color: COLORS.inkSecondary }}>
               Ancora nessuna attività oggi
             </p>
@@ -592,17 +602,24 @@ function CervelloGlobaleCard() {
 
 // ── Tab Attività ─────────────────────────────────────────────────────────────
 
-type FiltroAttivita = "tutti" | "memoria" | "attenzione" | "linguaggio";
+type FiltroAttivita = "tutti" | "memoria" | "attenzione" | "linguaggio" | "esecutive" | "visuospaziali";
 const FILTRO_LABEL: Record<FiltroAttivita, string> = {
   tutti: "Tutti", memoria: "Memoria", attenzione: "Attenzione", linguaggio: "Linguaggio",
+  esecutive: "Esecutive", visuospaziali: "Visuospaziali",
 };
+
+const FILTRO_ICONA: Record<string, string> = Object.fromEntries(
+  mockCategorie.map((c) => [c.id, c.icona])
+);
 
 function FiltroPills({ filtro, setFiltro }: { filtro: FiltroAttivita; setFiltro: (f: FiltroAttivita) => void }) {
   return (
     <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-      {(["tutti", "memoria", "attenzione", "linguaggio"] as FiltroAttivita[]).map((f) => {
+      {(["tutti", "memoria", "attenzione", "linguaggio", "esecutive", "visuospaziali"] as FiltroAttivita[]).map((f) => {
         const isActive = filtro === f;
         const cc = f !== "tutti" ? CATEGORIA_COLORS[f] : null;
+        const icona = FILTRO_ICONA[f];
+        const iconColor = isActive ? "#FFFFFF" : (cc?.text ?? COLORS.inkMuted);
         return (
           <button
             key={f}
@@ -613,12 +630,7 @@ function FiltroPills({ filtro, setFiltro }: { filtro: FiltroAttivita; setFiltro:
               color: isActive ? "#FFFFFF" : COLORS.inkMuted,
             }}
           >
-            {cc && (
-              <span
-                className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                style={{ backgroundColor: isActive ? "rgba(255,255,255,0.7)" : cc.text }}
-              />
-            )}
+            {icona && <AppIcon name={icona} size={17} color={iconColor} />}
             {FILTRO_LABEL[f]}
           </button>
         );
