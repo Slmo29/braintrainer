@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/card";
-import { mockEsercizi, mockCategorie } from "@/lib/mock-data";
+import { mockEsercizi, mockCategorie, mockScoreCategorie } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
-import { Timer } from "iconoir-react";
+import { Timer, Lock } from "iconoir-react";
 import { useUserStore } from "@/lib/store";
 import { PausaAttivaModal } from "@/components/ui/pausa-attiva-modal";
 
@@ -25,9 +25,20 @@ export default function EserciziPage() {
   const [mostraPausa, setMostraPausa] = useState(false);
   const [esercizioTarget, setEsercizioTarget] = useState<string | null>(null);
 
-  const eserciziFiltrati = mockEsercizi.filter((e) => e.categoria_id === tab);
+  // TODO: sostituire con query Supabase — SELECT livello FROM progressi_utente WHERE categoria = tab AND user_id = ...
+  const livelloUtente = mockScoreCategorie.find((c) => c.categoria.toLowerCase() === tab)?.livello ?? 1;
 
-  function handleClickEsercizio(id: string) {
+  const eserciziFiltrati = mockEsercizi
+    .filter((e) => e.categoria_id === tab)
+    .filter((e) => isGuest || e.livello <= livelloUtente);
+
+  function isLocked(livello: number): boolean {
+    if (isGuest) return livello > 1;
+    return false; // registrato vede solo esercizi già sbloccati, tutti accessibili
+  }
+
+  function handleClickEsercizio(id: string, locked: boolean) {
+    if (locked) return;
     if (eserciziFattiOggi >= LIMITE_ESERCIZI_GIORNO) {
       setEsercizioTarget(id);
       setMostraPausa(true);
@@ -77,35 +88,44 @@ export default function EserciziPage() {
         {eserciziFiltrati.map((esercizio) => {
           const cat = mockCategorie.find((c) => c.id === esercizio.categoria_id);
           const cc = cat ? CATEGORIA_COLORS[cat.id] : null;
+          const locked = isLocked(esercizio.livello);
 
           return (
             <button
               key={esercizio.id}
               className="text-left w-full"
-              onClick={() => handleClickEsercizio(esercizio.id)}
+              onClick={() => handleClickEsercizio(esercizio.id, locked)}
             >
-              <Card padding="md" className="active:scale-[0.98] transition-transform">
+              <Card padding="md" className={locked ? "opacity-70" : "active:scale-[0.98] transition-transform"}>
                 <div className="flex items-center gap-4">
                   <div
                     className="w-14 h-14 rounded-md flex items-center justify-center flex-shrink-0"
-                    style={{ backgroundColor: cc?.bg ?? COLORS.surfaceAlt }}
+                    style={{ backgroundColor: locked ? COLORS.background : (cc?.bg ?? COLORS.surfaceAlt) }}
                   >
-                    <AppIcon
-                      name={cat?.icona ?? "brain"}
-                      size={32}
-                      color={cc?.text ?? COLORS.primary}
-                    />
+                    {locked ? (
+                      <Lock width={28} height={28} strokeWidth={1.5} color={COLORS.inkMuted} />
+                    ) : (
+                      <AppIcon name={cat?.icona ?? "brain"} size={32} color={cc?.text ?? COLORS.primary} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold text-ink leading-snug">{esercizio.titolo}</h3>
+                    <h3 className="text-base font-bold leading-snug" style={{ color: locked ? COLORS.inkMuted : COLORS.inkPrimary }}>{esercizio.titolo}</h3>
                     <div className="flex items-center gap-1 text-xs" style={{ color: COLORS.inkMuted }}>
                       <Timer width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} />
                       <span>{Math.ceil((esercizio.durata_stimata ?? 60) / 60)} minuti</span>
                       <span>·</span>
                       <span>Livello {esercizio.livello}/6</span>
                     </div>
+                    {locked && (
+                      <p className="text-xs font-semibold mt-1" style={{ color: COLORS.primary }}>
+                        Registrati per sbloccare
+                      </p>
+                    )}
                   </div>
-                  <span className="text-ink-muted text-xl flex-shrink-0">›</span>
+                  {locked
+                    ? <Lock width={18} height={18} strokeWidth={1.5} color={COLORS.inkMuted} className="flex-shrink-0" />
+                    : <span className="text-ink-muted text-xl flex-shrink-0">›</span>
+                  }
                 </div>
               </Card>
             </button>

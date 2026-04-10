@@ -351,31 +351,45 @@ function StoricoGiornaliero() {
 }
 
 function DettaglioGiorno({ dateStr }: { dateStr: string }) {
-  // TODO: sostituire con fetch da Supabase per il giorno selezionato
+  // TODO: sostituire con fetch da Supabase — SELECT * FROM sessioni WHERE data = dateStr
   const sessioni = mockStoricoGiornaliero.find((g) => g.data === dateStr)?.sessioni ?? [];
   const d = new Date(dateStr);
   const label = `${NOMI_GIORNO_IT[d.getDay()]} ${d.getDate()} ${MESI_SHORT_IT[d.getMonth()]}`;
 
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const isToday = dateStr === todayStr;
+
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-base font-bold text-ink">{label}</p>
+      <p className="text-base font-bold text-ink">{isToday ? "Oggi" : label}</p>
       {sessioni.length === 0 ? (
-        <p className="text-sm" style={{ color: COLORS.inkMuted }}>Nessuna sessione completata in questo giorno.</p>
+        <div className="rounded-xl p-4 flex flex-col gap-1" style={{ backgroundColor: COLORS.surfaceAlt }}>
+          <p className="text-sm font-semibold" style={{ color: COLORS.inkSecondary }}>
+            {isToday ? "Nessuna attività ancora oggi" : "Nessuna attività in questo giorno"}
+          </p>
+          {isToday && (
+            <p className="text-xs" style={{ color: COLORS.inkMuted }}>
+              Vai alla home e inizia il tuo allenamento!
+            </p>
+          )}
+        </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
           {sessioni.map((s, i) => {
             const cc = CATEGORIA_COLORS[s.categoria.toLowerCase()];
+            const catLabel = s.categoria.charAt(0).toUpperCase() + s.categoria.slice(1);
             return (
-              <div key={i} className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: "#FFFFFF" }}>
+              <div key={i} className="flex items-center gap-3 py-3" style={{ borderTop: i > 0 ? `1px solid ${COLORS.border}` : undefined }}>
                 <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                  className="w-11 h-11 rounded-md flex items-center justify-center flex-shrink-0"
                   style={{ backgroundColor: cc?.bg ?? COLORS.background }}
                 >
-                  <AppIcon name={s.icona} size={22} color={cc?.text ?? COLORS.primary} />
+                  <AppIcon name={s.icona} size={24} color={cc?.text ?? COLORS.primary} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-ink truncate">{s.nome_esercizio}</p>
-                  <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Livello {s.livello}</p>
+                  <p className="text-base font-normal text-ink truncate">{s.nome_esercizio}</p>
+                  <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>{catLabel} · Livello {s.livello}/6</p>
                 </div>
               </div>
             );
@@ -512,22 +526,245 @@ function CervelloGlobaleCard() {
   );
 }
 
+// ── Tab Attività ─────────────────────────────────────────────────────────────
+
+type FiltroAttivita = "tutti" | "memoria" | "attenzione" | "linguaggio";
+const FILTRO_LABEL: Record<FiltroAttivita, string> = {
+  tutti: "Tutti", memoria: "Memoria", attenzione: "Attenzione", linguaggio: "Linguaggio",
+};
+
+function FiltroPills({ filtro, setFiltro }: { filtro: FiltroAttivita; setFiltro: (f: FiltroAttivita) => void }) {
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+      {(["tutti", "memoria", "attenzione", "linguaggio"] as FiltroAttivita[]).map((f) => {
+        const isActive = filtro === f;
+        const cc = f !== "tutti" ? CATEGORIA_COLORS[f] : null;
+        return (
+          <button
+            key={f}
+            onClick={() => setFiltro(f)}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold flex-shrink-0 transition-all"
+            style={{
+              backgroundColor: isActive ? (cc?.text ?? COLORS.primary) : COLORS.background,
+              color: isActive ? "#FFFFFF" : COLORS.inkMuted,
+            }}
+          >
+            {cc && (
+              <span
+                className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: isActive ? "rgba(255,255,255,0.7)" : cc.text }}
+              />
+            )}
+            {FILTRO_LABEL[f]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AttivitaTab({ filtro: filtroExt, setFiltro: setFiltroExt, hidePills }: {
+  filtro?: FiltroAttivita;
+  setFiltro?: (f: FiltroAttivita) => void;
+  hidePills?: boolean;
+} = {}) {
+  const [filtroInt, setFiltroInt] = useState<FiltroAttivita>("tutti");
+  const filtro    = filtroExt    ?? filtroInt;
+  const setFiltro = setFiltroExt ?? setFiltroInt;
+  const [periodo, setPeriodo] = useState<Periodo>("settimana");
+
+  // TODO: sostituire con query Supabase — SELECT categoria, livello, trend, sessioni FROM progressi WHERE utente_id = ?
+  const filteredCats = filtro === "tutti"
+    ? mockScoreCategorie
+    : mockScoreCategorie.filter((c) => c.categoria.toLowerCase() === filtro);
+
+  const activeColor = filtro === "tutti"
+    ? COLORS.primary
+    : (CATEGORIA_COLORS[filtro]?.text ?? COLORS.primary);
+
+  // Build chart data
+  const sliceN = SLICE[periodo];
+  const chartData = filtro === "tutti"
+    ? mockScoreCategorie[0].storicoLivello.slice(-sliceN).map((d, i) => {
+        const obj: Record<string, unknown> = { label: d.label };
+        mockScoreCategorie.forEach((cat) => {
+          obj[cat.categoria] = cat.storicoLivello.slice(-sliceN)[i]?.livello;
+        });
+        return obj;
+      })
+    : (mockScoreCategorie.find((c) => c.categoria.toLowerCase() === filtro)
+        ?.storicoLivello.slice(-sliceN) ?? [])
+        .map((d) => ({ label: d.label, livello: d.livello }));
+
+  // Stats
+  const livelloMedio       = Math.round(filteredCats.reduce((s, c) => s + c.livello, 0) / filteredCats.length);
+  const dominiInCrescita   = filteredCats.filter((c) => c.trend === "crescita").length;
+  const sessioniTotali     = filteredCats.reduce((s, c) => s + c.sessioni, 0);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Filter pills — nascoste se gestite esternamente */}
+      {!hidePills && <FiltroPills filtro={filtro} setFiltro={setFiltro} />}
+
+      {/* Chart card */}
+      <div className="rounded-2xl p-4" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-bold text-ink">Andamento generale</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>{PERIODO_LABEL[periodo]}</span>
+            <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: activeColor }} />
+          </div>
+        </div>
+
+        {/* Period pills */}
+        <div className="flex gap-2 mb-3">
+          {(["settimana", "mese", "anno"] as Periodo[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriodo(p)}
+              className="text-xs font-semibold px-3 py-1 rounded-full transition-all"
+              style={{
+                backgroundColor: periodo === p ? activeColor : "#F0F0F0",
+                color: periodo === p ? "#FFFFFF" : "#6B7280",
+              }}
+            >
+              {PERIODO_LABEL[p]}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ height: 160 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+              <XAxis dataKey="label" tick={{ fontSize: 9, fill: COLORS.inkMuted }} axisLine={false} tickLine={false} />
+              <YAxis
+                domain={[1, 6]}
+                ticks={[1, 2, 3, 4, 5, 6]}
+                tickFormatter={(v) => `Liv ${v}`}
+                tick={{ fontSize: 9, fill: COLORS.inkMuted }}
+                axisLine={false}
+                tickLine={false}
+                width={36}
+              />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: 8, fontSize: 12 }}
+                formatter={(v, name) => [v != null ? `Liv ${v}` : "", name]}
+              />
+              {filtro === "tutti"
+                ? mockScoreCategorie.map((cat) => {
+                    const cc = CATEGORIA_COLORS[cat.categoria.toLowerCase()];
+                    return (
+                      <Line
+                        key={cat.categoria}
+                        type="monotone"
+                        dataKey={cat.categoria}
+                        stroke={cc?.text ?? COLORS.primary}
+                        strokeWidth={2}
+                        dot={{ fill: cc?.text ?? COLORS.primary, r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    );
+                  })
+                : (
+                  <Line
+                    type="monotone"
+                    dataKey="livello"
+                    stroke={activeColor}
+                    strokeWidth={2}
+                    dot={{ fill: activeColor, r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                )
+              }
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${COLORS.border}`, backgroundColor: COLORS.surface }}>
+        {filtro === "tutti" ? (
+          <>
+            <div className="grid grid-cols-2" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
+              <div className="p-4" style={{ borderRight: `1px solid ${COLORS.border}` }}>
+                <p className="text-2xl font-extrabold" style={{ color: activeColor }}>{livelloMedio}</p>
+                <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Livello medio</p>
+              </div>
+              <div className="p-4">
+                <p className="text-2xl font-extrabold" style={{ color: activeColor }}>{dominiInCrescita}/{filteredCats.length}</p>
+                <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Domini in crescita</p>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-2xl font-extrabold" style={{ color: activeColor }}>{sessioniTotali}</p>
+              <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Sessioni totali</p>
+            </div>
+          </>
+        ) : (() => {
+          const cat = filteredCats[0];
+          const trendArrow = { crescita: "↑", stabile: "→", calo: "↓" }[cat.trend];
+          return (
+            <div className="grid grid-cols-2">
+              <div className="p-4" style={{ borderRight: `1px solid ${COLORS.border}`, borderBottom: `1px solid ${COLORS.border}` }}>
+                <p className="text-2xl font-extrabold" style={{ color: activeColor }}>{cat.score}%</p>
+                <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Accuratezza</p>
+              </div>
+              <div className="p-4" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
+                <p className="text-2xl font-extrabold" style={{ color: activeColor }}>{cat.livello}</p>
+                <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Livello attuale</p>
+              </div>
+              <div className="p-4" style={{ borderRight: `1px solid ${COLORS.border}` }}>
+                <p className="text-2xl font-extrabold" style={{ color: activeColor }}>{cat.sessioni}</p>
+                <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Sessioni totali</p>
+              </div>
+              <div className="p-4">
+                <p className="text-2xl font-extrabold" style={{ color: activeColor }}>{trendArrow}</p>
+                <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Andamento</p>
+              </div>
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* Testo discorsivo — solo per categoria singola */}
+      {filteredCats.length === 1 && (
+        <p className="text-sm leading-relaxed" style={{ color: COLORS.inkSecondary }}>
+          {TREND_TEXTS[filteredCats[0].categoria]?.[filteredCats[0].trend] ?? ""}
+        </p>
+      )}
+    </div>
+  );
+}
+
 type Tab = "attivita" | "storico" | "medaglie";
 
 export default function ProgressiPage() {
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>((searchParams.get("tab") as Tab) ?? "attivita");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const { medaglie: medaglieIds } = useUserStore();
+  const [filtroGuest, setFiltroGuest] = useState<FiltroAttivita>("tutti");
+  const { medaglie: medaglieIds, isGuest } = useUserStore();
 
   useEffect(() => {
     const t = searchParams.get("tab") as Tab | null;
     if (t) setTab(t);
   }, [searchParams]);
+
+  useEffect(() => {
+    if (isGuest) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isGuest]);
   const medaglieGuadagnate = mockMedaglie.filter((m) => medaglieIds.includes(m.id));
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col" style={isGuest ? { overflow: "hidden", height: "100dvh" } : undefined}>
       {/* ── Header + Tabs ────────────────────────────────────────────── */}
       <div className="bg-surface px-4 pt-6 pb-0 sticky top-0 z-10 shadow-card">
         <div className="flex items-center gap-2 mb-0">
@@ -550,33 +787,52 @@ export default function ProgressiPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 pt-4">
+      {/* Filter pills per guest — visibili sopra il blur nel tab Attività */}
+      {isGuest && tab === "attivita" && (
+        <div className="px-4 pt-3 pb-2 flex-shrink-0" style={{ backgroundColor: COLORS.surface, borderBottom: `1px solid ${COLORS.border}` }}>
+          <FiltroPills filtro={filtroGuest} setFiltro={setFiltroGuest} />
+        </div>
+      )}
+
+      <div className="relative flex flex-col gap-4 px-4 pt-4 flex-1">
         {/* ── Tab: Attività ────────────────────────────────────────── */}
         {tab === "attivita" && (
-          <>
-            {/* 1 — Card cervello globale */}
-            <CervelloGlobaleCard />
-
-            {/* 2-4 — Aree cerebrali */}
-            <div className="flex flex-col gap-3">
-              {mockScoreCategorie.map((cat) => (
-                <AreaCerebraleCard key={cat.categoria} cat={cat} />
-              ))}
-            </div>
-
-          </>
+          isGuest
+            ? <AttivitaTab filtro={filtroGuest} setFiltro={setFiltroGuest} hidePills={true} />
+            : <AttivitaTab />
         )}
 
         {/* ── Tab: Storico ──────────────────────────────────────────── */}
         {tab === "storico" && (() => {
-          const diff  = totaleSettimana - mockTotaleSettimanaScorsa;
-          const bg    = diff > 0 ? COLORS.successLight : diff === 0 ? "#F5F5F5" : "#FEF2F2";
-          const color = diff > 0 ? COLORS.success      : diff === 0 ? "#6B7280" : "#DC2626";
-          const txt   = diff > 0
-            ? `Questa settimana hai fatto +${diff} esercizi rispetto alla settimana scorsa.`
-            : diff === 0
-            ? "Questa settimana hai fatto lo stesso numero di esercizi della settimana scorsa."
-            : `Questa settimana hai fatto ${diff} esercizi rispetto alla settimana scorsa.`;
+          // TODO: sostituire con query Supabase — SELECT count(*) FROM sessioni WHERE data >= inizio_settimana / settimana_scorsa
+          const diff = totaleSettimana - mockTotaleSettimanaScorsa;
+          const stato: "meglio" | "stabile" | "peggio" =
+            diff > 0 ? "meglio" : diff === 0 ? "stabile" : "peggio";
+
+          const stateConfig = {
+            meglio: {
+              bg: COLORS.successLight,
+              color: COLORS.success,
+              icon: "↑",
+              label: "In crescita",
+              txt: `Questa settimana hai fatto +${diff} esercizi rispetto alla settimana scorsa.`,
+            },
+            stabile: {
+              bg: "#F5F5F5",
+              color: "#6B7280",
+              icon: "→",
+              label: "Stabile",
+              txt: `Questa settimana hai fatto lo stesso numero di esercizi della settimana scorsa.`,
+            },
+            peggio: {
+              bg: "#FEF2F2",
+              color: "#DC2626",
+              icon: "↓",
+              label: "In calo",
+              txt: `Questa settimana hai fatto ${Math.abs(diff)} esercizi in meno rispetto alla settimana scorsa.`,
+            },
+          }[stato];
+
           return (
             <>
               <CalendarioMensile
@@ -584,8 +840,12 @@ export default function ProgressiPage() {
                 selectedDate={selectedDate}
                 onDaySelect={(d) => setSelectedDate(d || null)}
               >
-                <div className="rounded-xl p-4" style={{ backgroundColor: bg }}>
-                  <p className="text-sm font-semibold" style={{ color }}>{txt}</p>
+                <div className="rounded-xl p-4 flex flex-col gap-1" style={{ backgroundColor: stateConfig.bg }}>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-bold" style={{ color: stateConfig.color }}>{stateConfig.icon}</span>
+                    <span className="text-sm font-semibold" style={{ color: stateConfig.color }}>{stateConfig.label}</span>
+                  </div>
+                  <p className="text-xs" style={{ color: stateConfig.color }}>{stateConfig.txt}</p>
                 </div>
               </CalendarioMensile>
               {selectedDate && <DettaglioGiorno dateStr={selectedDate} />}
@@ -641,6 +901,30 @@ export default function ProgressiPage() {
               })}
             </div>
           </>
+        )}
+
+        {/* ── Overlay upsell — solo ospite ─────────────────────────── */}
+        {isGuest && (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 py-12"
+            style={{ backdropFilter: "blur(10px)", background: "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1))", zIndex: 20 }}
+          >
+            <div
+              className="w-32 h-32 rounded-full"
+              style={{ backgroundColor: COLORS.primary }}
+            />
+            <p className="text-lg font-bold text-ink text-center">
+              Sblocca la tua esperienza completa
+            </p>
+            <Link href="/onboarding/registrati" className="w-full max-w-xs">
+              <button
+                className="w-full py-3 rounded-full text-sm font-bold text-white"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                Registrati gratuitamente
+              </button>
+            </Link>
+          </div>
         )}
       </div>
     </div>

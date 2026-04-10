@@ -5,10 +5,10 @@ import Link from "next/link";
 import Card from "@/components/ui/card";
 import Btn from "@/components/ui/btn";
 import { useUserStore } from "@/lib/store";
-import { mockEsercizioDelGiorno, mockEsercizioDelGiornoCompletato, mockEsercizioDelGiornoRisultato, mockCategorie, mockProgressiSettimanali, mockSessioniRecenti } from "@/lib/mock-data";
+import { mockEsercizioDelGiorno, mockEsercizioDelGiornoCompletato, mockEsercizioDelGiornoRisultato, mockCategorie, mockProgressiSettimanali, mockSessioniRecenti, mockMessaggiFamiliari } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
-import { Timer, Running, Phone, Palette, Leaf, Lock, User, StatsReport, Calendar, Medal, Bell } from "iconoir-react";
+import { Timer, Running, Phone, Palette, Leaf, Lock, User, StatsReport, Calendar, Medal, Bell, ChatLines } from "iconoir-react";
 import { PausaAttivaModal, CheckCircles } from "@/components/ui/pausa-attiva-modal";
 
 const GIORNO_INDEX: Record<string, number> = { Lun: 1, Mar: 2, Mer: 3, Gio: 4, Ven: 5, Sab: 6, Dom: 7 };
@@ -142,10 +142,10 @@ function PausaAttivaView({ secondiRimasti }: { secondiRimasti: number }) {
 }
 
 const UPSELL_FEATURES = [
-  { label: "Traccia i progressi",    icon: StatsReport },
-  { label: "Calendario attività",    icon: Calendar },
-  { label: "Livelli e medaglie",     icon: Medal },
-  { label: "Promemoria giornalieri", icon: Bell },
+  { label: "Traccia i tuoi progressi",     icon: StatsReport },
+  { label: "Traccia dei tuoi progressi",   icon: Calendar },
+  { label: "Medaglie, trofei e molto altro", icon: Medal },
+  { label: "Promemoria personalizzati",    icon: Bell },
 ];
 
 export default function HomePage() {
@@ -193,14 +193,21 @@ export default function HomePage() {
     <>
       <div className="flex flex-col gap-8 px-4 pt-12">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-extrabold text-ink">Ciao{nome ? ` ${nome}` : ""},</h1>
-          {isGuest && (
-            <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ backgroundColor: "#FEF9C3", color: "#78350F" }}>
-              <User width={15} height={15} strokeWidth={1.5} color="#78350F" />
-              Stai usando la modalità ospite
-            </div>
-          )}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-extrabold text-ink">{isGuest ? "Ciao Ospite," : `Ciao${nome ? ` ${nome}` : ""},`}</h1>
+          </div>
+          {/* Campanella notifiche */}
+          <div className="relative mt-1">
+            <Link href="/messaggi">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primaryLight }}>
+                <ChatLines width={22} height={22} strokeWidth={1.5} color={COLORS.primary} />
+              </div>
+            </Link>
+            {!isGuest && mockMessaggiFamiliari.some((m) => !m.letto) && (
+              <span className="absolute top-0 right-0 w-3 h-3 rounded-full border-2 border-white pointer-events-none" style={{ backgroundColor: "#DC2626" }} />
+            )}
+          </div>
         </div>
 
         {/* Streak */}
@@ -229,7 +236,7 @@ export default function HomePage() {
             {/* Esercizio del Giorno */}
             <div>
               <h2 className="text-lg font-bold text-ink mb-3">Esercizio del Giorno</h2>
-              <Card padding="lg" style={{ backgroundColor: "#FFFFFF" }}>
+              <Card padding="md" style={{ backgroundColor: "#FFFFFF" }}>
                 <div className="flex items-center gap-2 mb-3">
                   {catColors && (
                     <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full" style={{ backgroundColor: catColors.bg, color: catColors.text }}>
@@ -238,7 +245,10 @@ export default function HomePage() {
                     </span>
                   )}
                   {completato && (
-                    <span className="inline-flex items-center text-xs font-bold px-3 py-1 rounded-full" style={{ backgroundColor: "#DCFCE7", color: "#16A34A" }}>
+                    <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full" style={{ backgroundColor: "#DCFCE7", color: "#16A34A" }}>
+                      <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                      </svg>
                       Completato
                     </span>
                   )}
@@ -259,14 +269,17 @@ export default function HomePage() {
 
                 {completato ? (
                   <div className="mt-4 flex flex-col gap-3">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-3">
                       {[
-                        { label: "Tempo",       value: formatTempo(risultato.tempo_secondi) },
-                        { label: "Accuratezza", value: `${risultato.precisione}%` },
+                        { label: "Tempo",       value: formatTempo(risultato.tempo_secondi), icon: <Timer width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
+                        { label: "Accuratezza", value: `${risultato.precisione}%`,            icon: <StatsReport width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
                       ].map((stat) => (
-                        <div key={stat.label} className="flex flex-col items-center rounded-lg py-3" style={{ backgroundColor: COLORS.background }}>
-                          <span className="text-base font-bold text-ink" style={{ filter: isGuest ? "blur(5px)" : "none", userSelect: isGuest ? "none" : "auto" }}>{stat.value}</span>
-                          <span className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>{stat.label}</span>
+                        <div key={stat.label} className="flex flex-col items-center gap-1 rounded-xl py-2" style={{ backgroundColor: COLORS.primaryLight, border: `1px solid ${COLORS.primary}22` }}>
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${COLORS.primary}18` }}>
+                            {stat.icon}
+                          </div>
+                          <span className="text-base font-extrabold" style={{ color: COLORS.primary, filter: isGuest ? "blur(5px)" : "none", userSelect: isGuest ? "none" : "auto" }}>{stat.value}</span>
+                          <span className="text-xs font-medium" style={{ color: COLORS.inkMuted }}>{stat.label}</span>
                         </div>
                       ))}
                     </div>
@@ -308,30 +321,35 @@ export default function HomePage() {
               </Card>
             </div>
 
-            {/* Card upsell — solo ospite */}
-            {isGuest && (
-              <div className="rounded-2xl p-4 flex flex-col gap-3" style={{ border: `2px solid ${COLORS.primary}40`, backgroundColor: `${COLORS.primary}10` }}>
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${COLORS.primary}25` }}>
-                    <Lock width={18} height={18} strokeWidth={1.5} color={COLORS.primary} />
+            {/* Card upsell — solo ospite che non ha ancora completato l'esercizio del giorno */}
+            {isGuest && !completato && (
+              <div className="rounded-xl p-4 flex flex-col gap-4" style={{ border: `1px solid ${COLORS.primary}`, backgroundColor: "#E8F1F3" }}>
+                {/* Header */}
+                <div className="flex flex-col gap-1">
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.primaryLight }}>
+                    <User width={28} height={28} strokeWidth={1.5} color={COLORS.primary} />
                   </div>
-                  <div>
-                    <p className="text-base font-extrabold text-ink">Sblocca la tua esperienza completa</p>
-                    <p className="text-xs mt-0.5" style={{ color: COLORS.inkSecondary }}>
-                      Registrati e tieni traccia dei tuoi progressi, livelli e molto altro.
-                    </p>
-                  </div>
+                  <p className="text-sm font-bold text-ink whitespace-nowrap">Sblocca la tua esperienza completa</p>
+                  <p className="text-sm" style={{ color: COLORS.inkSecondary }}>
+                    Registrati e tieni traccia dei tuoi progressi, livelli e molto altro.
+                  </p>
                 </div>
+
+                {/* Feature cards 2×2 */}
                 <div className="grid grid-cols-2 gap-2">
                   {UPSELL_FEATURES.map(({ label, icon: Icon }) => (
-                    <div key={label} className="flex items-center gap-2">
-                      <Icon width={24} height={24} strokeWidth={1.5} color={COLORS.primary} />
-                      <span className="text-xs font-semibold text-ink">{label}</span>
+                    <div key={label} className="bg-white rounded-lg p-3 flex flex-col gap-2">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primaryLight }}>
+                        <Icon width={13} height={13} strokeWidth={1.5} color={COLORS.primary} />
+                      </div>
+                      <p className="text-xs font-bold text-ink leading-tight">{label}</p>
                     </div>
                   ))}
                 </div>
+
+                {/* CTA */}
                 <Link href="/onboarding/registrati">
-                  <button className="w-full py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: COLORS.primary }}>
+                  <button className="w-full py-3 rounded-full text-sm font-bold text-white" style={{ backgroundColor: COLORS.primary }}>
                     Registrati gratuitamente
                   </button>
                 </Link>
@@ -347,7 +365,12 @@ export default function HomePage() {
                 </Link>
               </div>
               <div className="flex flex-col gap-3">
-                {mockCategorie.map((cat) => {
+                {[...mockCategorie].sort((a, b) => {
+                  const TREND_ORDER: Record<string, number> = { calo: 0, stabile: 1, crescita: 2 };
+                  const trendA = mockSessioniRecenti.find((s) => s.categoria === a.nome)?.trend ?? "stabile";
+                  const trendB = mockSessioniRecenti.find((s) => s.categoria === b.nome)?.trend ?? "stabile";
+                  return (TREND_ORDER[trendA] ?? 1) - (TREND_ORDER[trendB] ?? 1);
+                }).map((cat) => {
                   const cc = CATEGORIA_COLORS[cat.id];
                   const ultimaSessione = mockSessioniRecenti.find((s) => s.categoria === cat.nome);
                   const trendConfig = {

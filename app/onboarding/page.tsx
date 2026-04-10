@@ -28,13 +28,13 @@ const PUNTI = [
 export default function OnboardingPage() {
   return (
     <div
-      className="min-h-screen flex flex-col items-center px-6 pt-6 pb-12 max-w-lg mx-auto"
+      className="h-screen flex flex-col px-6 pt-4 max-w-lg mx-auto"
       style={{ background: `linear-gradient(160deg, ${COLORS.primaryLight}88 0%, ${COLORS.surface} 55%)` }}
     >
       <StepLines current={0} />
 
-      {/* Hero */}
-      <div className="flex flex-col items-center w-full gap-6">
+      {/* Contenuto scrollabile */}
+      <div className="flex-1 overflow-y-auto flex flex-col items-center w-full gap-6 min-h-0">
         <Brain width={80} height={80} strokeWidth={1.5} color={COLORS.primary} />
 
         <div className="text-center">
@@ -68,19 +68,19 @@ export default function OnboardingPage() {
             </div>
           ))}
         </div>
+      </div>
 
-        {/* CTA */}
-        <div className="w-full flex flex-col gap-3">
-          <Link href="/onboarding/istruzioni" className="w-full">
-            <Btn size="lg">Prova subito</Btn>
+      {/* CTA ancorato al fondo */}
+      <div className="flex flex-col gap-3 py-6">
+        <Link href="/onboarding/istruzioni" className="w-full">
+          <Btn size="lg">Prova subito</Btn>
+        </Link>
+        <p className="text-center text-sm text-ink-secondary">
+          Hai già un profilo?{" "}
+          <Link href="/onboarding/accedi" style={{ color: COLORS.primary, fontWeight: 500 }}>
+            Accedi
           </Link>
-          <p className="text-center text-sm text-ink-secondary">
-            Hai già un profilo?{" "}
-            <Link href="/onboarding/accedi" style={{ color: COLORS.primary, fontWeight: 500 }}>
-              Accedi
-            </Link>
-          </p>
-        </div>
+        </p>
       </div>
     </div>
   );

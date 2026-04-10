@@ -13,11 +13,11 @@ export const COLORS = {
   primaryDark: "#1478A0",
 
   // Accenti
-  accent1: "#7B4FA6",      // viola  — Memoria
+  accent1: "#7B50A6",      // viola  — Memoria
   accent1Light: "#EDE0F5",
-  accent2: "#2E7D52",      // verde  — Linguaggio
+  accent2: "#297248",      // verde  — Linguaggio
   accent2Light: "#D4EDDA",
-  accent3: "#C2185B",      // rosa   — Attenzione
+  accent3: "#BA1751",      // rosa   — Attenzione
   accent3Light: "#FCE4EC",
 
   // Testo
@@ -44,9 +44,9 @@ export const COLORS = {
 
 // Mappa colori per categoria esercizi
 export const CATEGORIA_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  memoria:    { bg: "#EDE0F5", text: "#7B4FA6", border: "#7B4FA6" },
-  attenzione: { bg: "#FCE4EC", text: "#C2185B", border: "#C2185B" },
-  linguaggio: { bg: "#D4EDDA", text: "#2E7D52", border: "#2E7D52" },
+  memoria:    { bg: "#EDE0F5", text: "#7B50A6", border: "#7B50A6" },
+  attenzione: { bg: "#FCE4EC", text: "#BA1751", border: "#BA1751" },
+  linguaggio: { bg: "#D4EDDA", text: "#297248", border: "#297248" },
 };
 
 // Difficoltà badge

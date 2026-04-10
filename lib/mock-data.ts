@@ -101,7 +101,7 @@ export const mockEsercizioDelGiorno = mockEsercizi[0];
 // TODO: sostituire con query Supabase — SELECT count(*) FROM sessioni WHERE utente_id = ? AND data = TODAY()
 // La logica di blocco è: se sessioni_oggi >= LIMITE_ESERCIZI_GIORNO (5) → mostra modale pausa attiva
 export const mockEserciziOggi = 4;
-export const mockEsercizioDelGiornoCompletato = true;
+export const mockEsercizioDelGiornoCompletato = false;
 export const mockEsercizioDelGiornoRisultato = {
   tempo_secondi: 108,   // 1:48
   precisione: 92,       // %
@@ -142,6 +142,15 @@ export const mockScoreCategorie = [
       { label: "31 Mar", score: 71 }, { label: "1 Apr",  score: 72 },
       { label: "2 Apr",  score: 73 }, { label: "3 Apr",  score: 74 },
     ],
+    // TODO: sostituire con query Supabase — SELECT data, livello FROM sessioni WHERE categoria = 'memoria' ORDER BY data
+    storicoLivello: [
+      { label: "6 Mar",  livello: 1 }, { label: "10 Mar", livello: 1 },
+      { label: "14 Mar", livello: 1 }, { label: "18 Mar", livello: 2 },
+      { label: "22 Mar", livello: 2 }, { label: "25 Mar", livello: 2 },
+      { label: "27 Mar", livello: 2 }, { label: "29 Mar", livello: 2 },
+      { label: "31 Mar", livello: 3 }, { label: "1 Apr",  livello: 3 },
+      { label: "2 Apr",  livello: 3 }, { label: "3 Apr",  livello: 3 },
+    ],
   },
   {
     categoria: "Attenzione", icona: "target", colore: "#7C3AED", score: 61,
@@ -154,6 +163,15 @@ export const mockScoreCategorie = [
       { label: "27 Mar", score: 59 }, { label: "29 Mar", score: 63 },
       { label: "31 Mar", score: 60 }, { label: "1 Apr",  score: 62 },
       { label: "2 Apr",  score: 60 }, { label: "3 Apr",  score: 61 },
+    ],
+    // TODO: sostituire con query Supabase — SELECT data, livello FROM sessioni WHERE categoria = 'attenzione' ORDER BY data
+    storicoLivello: [
+      { label: "6 Mar",  livello: 2 }, { label: "10 Mar", livello: 2 },
+      { label: "14 Mar", livello: 2 }, { label: "18 Mar", livello: 2 },
+      { label: "22 Mar", livello: 2 }, { label: "25 Mar", livello: 2 },
+      { label: "27 Mar", livello: 2 }, { label: "29 Mar", livello: 2 },
+      { label: "31 Mar", livello: 2 }, { label: "1 Apr",  livello: 2 },
+      { label: "2 Apr",  livello: 2 }, { label: "3 Apr",  livello: 2 },
     ],
   },
   {
@@ -168,6 +186,15 @@ export const mockScoreCategorie = [
       { label: "31 Mar", score: 90 }, { label: "1 Apr",  score: 89 },
       { label: "2 Apr",  score: 89 }, { label: "3 Apr",  score: 88 },
     ],
+    // TODO: sostituire con query Supabase — SELECT data, livello FROM sessioni WHERE categoria = 'linguaggio' ORDER BY data
+    storicoLivello: [
+      { label: "6 Mar",  livello: 5 }, { label: "10 Mar", livello: 5 },
+      { label: "14 Mar", livello: 5 }, { label: "18 Mar", livello: 5 },
+      { label: "22 Mar", livello: 4 }, { label: "25 Mar", livello: 4 },
+      { label: "27 Mar", livello: 4 }, { label: "29 Mar", livello: 4 },
+      { label: "31 Mar", livello: 4 }, { label: "1 Apr",  livello: 4 },
+      { label: "2 Apr",  livello: 4 }, { label: "3 Apr",  livello: 4 },
+    ],
   },
 ];
 
@@ -176,6 +203,16 @@ export const mockSessioniRecenti = [
   { titolo: "Test Stroop", categoria: "Attenzione", score: 70, data: "Ieri", icona: "target", trend: "stabile" as const },
   { titolo: "Anagramma", categoria: "Linguaggio", score: 100, data: "Ieri", icona: "chat", trend: "calo" as const },
   { titolo: "Sequenza di Colori", categoria: "Memoria", score: 60, data: "2 giorni fa", icona: "brain", trend: "stabile" as const },
+];
+
+// ─── Mock Messaggi Famigliari ─────────────────────────────────────────────────
+// TODO: sostituire con dati reali da Supabase (tabella messaggi_familiari)
+export const mockMessaggiFamiliari = [
+  { id: "1", mittente: "Marco", relazione: "Figlio",  data: "8 Apr 2026",  testo: "Ciao mamma! Brava, continua così! Sono così orgoglioso di te.", letto: false },
+  { id: "2", mittente: "Marco", relazione: "Figlio",  data: "6 Apr 2026",  testo: "Ricordati di fare l'esercizio oggi! Ti voglio bene.", letto: true },
+  { id: "3", mittente: "Sara",  relazione: "Figlia",  data: "4 Apr 2026",  testo: "Mamma hai fatto 3 giorni di fila! 🎉 Bravissima!", letto: true },
+  { id: "4", mittente: "Marco", relazione: "Figlio",  data: "2 Apr 2026",  testo: "Come stai oggi? Hai fatto l'esercizio di oggi?", letto: true },
+  { id: "5", mittente: "Luca",  relazione: "Nipote",  data: "31 Mar 2026", testo: "Nonna sei fortissima! Vai avanti così 🌟", letto: true },
 ];
 
 // ─── Mock Storico Giornaliero ─────────────────────────────────────────────────

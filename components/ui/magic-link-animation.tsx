@@ -89,7 +89,7 @@ export function MagicLinkAnimation({ canale }: { canale: MagicLinkCanale }) {
           </div>
 
           {/* Message */}
-          <p ref={msgRef} className="magic-message" style={{ fontSize: 13, color: "#1A1A2E", margin: 0, lineHeight: 1.5 }}>
+          <p ref={msgRef} className="magic-message" style={{ fontSize: 13, color: "#1A1A2E", margin: 0, lineHeight: 1.5, paddingRight: canale === "email" ? 110 : 68 }}>
             {cfg.messagePrefix && <>{cfg.messagePrefix}{" "}</>}
             <span style={{ color: cfg.linkColor, textDecoration: "underline", fontWeight: 600 }}>
               {cfg.messageLinkText}

@@ -49,7 +49,7 @@ export default function OnboardingRewardPage() {
         </div>
         <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted mt-1">Hai guadagnato la medaglia</p>
         <h1 className="text-xl font-extrabold text-ink mt-0.5">"Prima Sfida"</h1>
-        <p className="text-sm text-ink-secondary mt-0.5 whitespace-nowrap">La tua memoria è più forte di quanto pensi!</p>
+        <p className="text-sm text-ink-secondary mt-0.5 max-w-[220px]">La tua memoria è più forte di quanto pensi!</p>
       </div>
 
       {/* Card Lo sapevi */}
@@ -70,8 +70,8 @@ export default function OnboardingRewardPage() {
         <div className="grid grid-cols-2 gap-2">
           {[
             { label: "Esercizi di diversi livelli", icon: <Brain width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
-            { label: "Traccia i tuoi progressi",   icon: <StatsReport width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
-            { label: "Accumula medaglie, trofei e tanto altro", icon: <Medal width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
+            { label: "Traccia dei tuoi progressi",  icon: <StatsReport width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
+            { label: "Medaglie, trofei e tanto altro", icon: <Medal width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
             { label: "Promemoria personalizzati",   icon: <Bell width={18} height={18} strokeWidth={1.5} color={COLORS.primary} /> },
           ].map(({ label, icon }) => (
             <div key={label} className="rounded-lg p-3 flex flex-col gap-2" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.primary}22` }}>

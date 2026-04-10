@@ -156,7 +156,7 @@ export default function OnboardingRegistratiPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col max-w-lg mx-auto px-5 pt-6 pb-56" style={{ backgroundColor: COLORS.background }}>
+    <div className="h-screen flex flex-col max-w-lg mx-auto px-5 pt-6" style={{ backgroundColor: COLORS.background }}>
       {isGuest ? (
         <button
           onClick={() => router.push("/home")}
@@ -171,7 +171,7 @@ export default function OnboardingRegistratiPage() {
       )}
 
       {step === "form" ? (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 flex-1 overflow-y-auto min-h-0">
           <div>
             <h1 className="text-2xl font-extrabold text-ink">Crea il tuo profilo per salvare i tuoi progressi</h1>
           </div>
@@ -276,9 +276,9 @@ export default function OnboardingRegistratiPage() {
         </div>
       )}
 
-      {/* Link fissi — solo nella fase magic */}
+      {/* Link ancorati al fondo — solo nella fase magic */}
       {step === "magic" && (
-        <div className="fixed bottom-6 left-0 right-0 px-5 max-w-lg mx-auto flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3 py-6">
           <p style={{ fontSize: 18, color: "#1A1A2E" }}>
             Non hai ricevuto nulla?{" "}
             <button style={{ color: COLORS.primary, fontWeight: 500, fontSize: 18 }}>
@@ -291,19 +291,9 @@ export default function OnboardingRegistratiPage() {
         </div>
       )}
 
-      {/* Bottone fisso — solo nella fase form */}
+      {/* CTA ancorata al fondo — solo nella fase form */}
       {step === "form" && (
-        <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto" style={{ zIndex: 60 }}>
-          {/* Fade gradient sopra il box */}
-          <div
-            className="pointer-events-none"
-            style={{
-              height: 60,
-              background: `linear-gradient(to bottom, transparent, ${COLORS.background})`,
-            }}
-          />
-          {/* Box footer opaco */}
-          <div className="flex flex-col gap-3 items-center px-5 pb-8 pt-3" style={{ backgroundColor: COLORS.background }}>
+        <div className="flex flex-col gap-3 items-center py-6">
           <Btn size="lg" onClick={handleContinua} disabled={!formValido}>
             Registrati
           </Btn>
@@ -317,7 +307,6 @@ export default function OnboardingRegistratiPage() {
               Continua senza registrarti
             </button>
           )}
-          </div>
         </div>
       )}
     </div>

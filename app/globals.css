@@ -14,7 +14,6 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-size: 20px;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
@@ -23,4 +22,24 @@
   /* Scrollbar nascosta */
   .scrollbar-none::-webkit-scrollbar { display: none; }
   .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ── Accessibilità: dimensione testo ──────────────────────────── */
+/* Impostare su html ridimensiona tutti i rem di Tailwind proporzionalmente */
+html[data-font="piccolo"]      { font-size: 13px; }
+html[data-font="normale"]      { font-size: 16px; }
+html[data-font="grande"]       { font-size: 19px; }
+html[data-font="molto grande"] { font-size: 22px; }
+
+/* ── Accessibilità: alto contrasto ───────────────────────────── */
+html.alto-contrasto {
+  --foreground: #000000;
+  --background: #FFFFFF;
+  --border: #000000;
+}
+html.alto-contrasto body {
+  color: #000000;
+}
+html.alto-contrasto * {
+  letter-spacing: 0.01em;
 }

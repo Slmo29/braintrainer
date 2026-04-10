@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Card from "@/components/ui/card";
 import Btn from "@/components/ui/btn";
 import Toggle from "@/components/ui/toggle";
 import Modal from "@/components/ui/modal";
-import { useUserStore, type CanalNotifica, type Familiare } from "@/lib/store";
+import { useUserStore, type CanalNotifica, type DimensioneTesto, type Familiare } from "@/lib/store";
 import { mockMedaglie } from "@/lib/mock-data";
 import { COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
@@ -30,7 +30,7 @@ const inputCls = `w-full min-h-[56px] rounded-md px-4 text-base text-ink bg-back
 // ─── Helper: sezione header ───────────────────────────────────────────────────
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-base font-bold mb-3 flex items-center gap-2" style={{ color: COLORS.primary }}>
+    <p className="text-sm font-semibold flex items-center gap-1.5" style={{ color: COLORS.primary }}>
       {children}
     </p>
   );
@@ -67,26 +67,21 @@ function SezioneInfo() {
   return (
     <Card padding="md">
       <div className="flex items-center justify-between mb-3">
-        <SectionTitle>
-          <User width={18} height={18} strokeWidth={1.5} color={COLORS.primary} />
-          Le mie informazioni
-        </SectionTitle>
+        <SectionTitle>Le mie informazioni</SectionTitle>
         {!editing ? (
           <button
             onClick={() => { setDraft({ nome, cognome, telefono, email, anno_nascita }); setEditing(true); }}
-            className="flex items-center gap-1.5 text-sm font-bold px-4 py-2 rounded-md transition-colors"
-            style={{ color: COLORS.primary, backgroundColor: `${COLORS.primaryLight}55` }}
+            className="text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            style={{ color: COLORS.primary, backgroundColor: COLORS.primaryLight }}
           >
-            <EditPencil width={16} height={16} strokeWidth={1.5} color={COLORS.primary} />
             Modifica
           </button>
         ) : (
           <button
             onClick={handleSave}
-            className="flex items-center gap-1.5 text-sm font-bold px-4 py-2 rounded-md text-white"
+            className="text-sm font-semibold px-3 py-1.5 rounded-lg text-white"
             style={{ backgroundColor: COLORS.primary }}
           >
-            <CheckCircle width={16} height={16} strokeWidth={1.5} color="white" />
             Salva
           </button>
         )}
@@ -111,33 +106,12 @@ function SezioneInfo() {
             : <InfoValue>{nome || "—"}</InfoValue>}
         </InfoField>
 
-        {/* Anno */}
-        <InfoField
-          label={<><Calendar width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} /> Anno di nascita</>}
-          editing={editing}
-        >
-          {editing
-            ? <select className={inputCls} value={draft.anno_nascita} onChange={(e) => setDraft({ ...draft, anno_nascita: +e.target.value })}>
-                {ANNI.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
-            : <InfoValue>{anno_nascita}</InfoValue>}
-        </InfoField>
-
         {/* Telefono */}
         <InfoField
           label={<><Phone width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} /> Telefono</>}
           editing={false}
         >
-          <div className="flex items-center gap-3">
-            <InfoValue>{telefono || "—"}</InfoValue>
-            <button
-              onClick={() => setShowOTP(true)}
-              className="text-sm font-bold px-3 py-1.5 rounded-md"
-              style={{ color: COLORS.primary, backgroundColor: `${COLORS.primaryLight}55` }}
-            >
-              Cambia
-            </button>
-          </div>
+          <InfoValue>{telefono || "—"}</InfoValue>
         </InfoField>
 
         {/* Email */}
@@ -250,6 +224,61 @@ function SezioneNotifiche() {
             </div>
           </>
         )}
+      </div>
+    </Card>
+  );
+}
+
+// ─── Sezione Accessibilità ────────────────────────────────────────────────────
+const DIMENSIONI: { id: DimensioneTesto; label: string }[] = [
+  { id: "piccolo",      label: "Piccolo" },
+  { id: "normale",      label: "Normale" },
+  { id: "grande",       label: "Grande" },
+  { id: "molto grande", label: "Molto grande" },
+];
+
+function SezioneAccessibilita() {
+  const { dimensione_testo, alto_contrasto, setUser } = useUserStore();
+
+  return (
+    <Card padding="md">
+      <div className="flex items-center justify-between mb-4">
+        <SectionTitle>Accessibilità</SectionTitle>
+      </div>
+
+      <div className="flex flex-col gap-5">
+        {/* Dimensione testo */}
+        <div>
+          <p className="text-sm font-semibold text-ink mb-1">Dimensioni testo</p>
+          <p className="text-xs mb-3" style={{ color: COLORS.inkMuted }}>Scegli la dimensione del testo</p>
+          <div className="grid grid-cols-2 gap-2">
+            {DIMENSIONI.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setUser({ dimensione_testo: id })}
+                className="py-2.5 rounded-lg text-sm font-semibold border-2 transition-all"
+                style={{
+                  borderColor: dimensione_testo === id ? COLORS.primary : COLORS.border,
+                  backgroundColor: dimensione_testo === id ? COLORS.primaryLight : COLORS.surface,
+                  color: dimensione_testo === id ? COLORS.primary : COLORS.inkSecondary,
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t border-border" />
+
+        {/* Alto contrasto */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-ink">Alto contrasto</p>
+            <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Migliora la leggibilità del testo</p>
+          </div>
+          <Toggle checked={alto_contrasto} onChange={(v) => setUser({ alto_contrasto: v })} />
+        </div>
       </div>
     </Card>
   );
@@ -471,48 +500,116 @@ function InfoValue({ children }: { children: React.ReactNode }) {
 }
 
 // ─── Pagina principale ────────────────────────────────────────────────────────
+type TabProfilo = "dati" | "impostazioni" | "famiglia";
+
 export default function ProfiloPage() {
-  const { nome, streak, medaglie: medaglieIds } = useUserStore();
+  const { nome, streak, medaglie: medaglieIds, isGuest } = useUserStore();
   const medaglieCount = mockMedaglie.filter((m) => medaglieIds.includes(m.id)).length;
   const membroDal = "20 marzo 2025";
+  const [tab, setTab] = useState<TabProfilo>("dati");
+
+  useEffect(() => {
+    if (isGuest) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, [isGuest]);
+
+  const TABS: { id: TabProfilo; label: string }[] = [
+    { id: "dati",         label: "Dati" },
+    { id: "impostazioni", label: "Impostazioni" },
+    { id: "famiglia",     label: "Famiglia" },
+  ];
 
   return (
-    <div className="flex flex-col">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="bg-surface px-5 pt-8 pb-6 border-b border-border">
-        <h1 className="text-2xl font-extrabold text-ink mb-5">Profilo</h1>
-        <div className="flex items-center gap-5">
-          {/* Avatar */}
-          <div
-            className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white shadow-card-md flex-shrink-0"
-            style={{ backgroundColor: COLORS.primary }}
-          >
-            {nome[0]?.toUpperCase()}
-          </div>
+    <div className="flex flex-col" style={isGuest ? { overflow: "hidden", height: "100dvh" } : undefined}>
+      {/* ── Header + Tab bar ───────────────────────────────────────────── */}
+      <div className="bg-surface px-5 pt-8 pb-0 border-b border-border">
+        <h1 className="text-2xl font-extrabold text-ink mb-4">Profilo</h1>
 
-          <div>
-            <h2 className="text-xl font-extrabold text-ink">{nome}</h2>
-            <p className="text-sm text-ink-muted mt-0.5">Membro dal {membroDal}</p>
-            <div className="flex items-center gap-4 mt-2">
-              <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.streak }}>
-                <FireFlame width={16} height={16} strokeWidth={1.5} color={COLORS.streak} />
-                {streak} giorni
-              </span>
-              <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.gold }}>
-                <Medal width={16} height={16} strokeWidth={1.5} color={COLORS.gold} />
-                {medaglieCount} medaglie
-              </span>
-            </div>
-          </div>
+        {/* Tab bar */}
+        <div className="flex gap-10 justify-center">
+          {TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className="pb-3 text-base font-semibold transition-colors relative whitespace-nowrap"
+              style={{ color: tab === id ? COLORS.primary : COLORS.inkMuted }}
+            >
+              {label}
+              {tab === id && (
+                <span
+                  className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full"
+                  style={{ backgroundColor: COLORS.primary }}
+                />
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* ── Sezioni ───────────────────────────────────────────────────── */}
-      <div className="px-4 pt-4 flex flex-col gap-4">
-        <SezioneInfo />
-        <SezioneNotifiche />
-        <SezioneMedaglie />
-        <SezioneFamiglia />
+      {/* ── Contenuto tab ─────────────────────────────────────────────── */}
+      <div className="relative px-4 pt-4 flex flex-col gap-4 flex-1">
+        {tab === "dati" && (
+          <>
+            {/* Avatar + info utente */}
+            <div className="flex items-center gap-5 py-2">
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-black text-white shadow-card-md flex-shrink-0"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                {nome[0]?.toUpperCase()}
+              </div>
+              <div>
+                <h2 className="text-xl font-extrabold text-ink">{nome}</h2>
+                <p className="text-sm text-ink-muted mt-0.5">Membro dal {membroDal}</p>
+                <div className="flex items-center gap-4 mt-2">
+                  <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.streak }}>
+                    <FireFlame width={16} height={16} strokeWidth={1.5} color={COLORS.streak} />
+                    {streak} giorni
+                  </span>
+                  <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.gold }}>
+                    <Medal width={16} height={16} strokeWidth={1.5} color={COLORS.gold} />
+                    {medaglieCount} medaglie
+                  </span>
+                </div>
+              </div>
+            </div>
+            <SezioneInfo />
+          </>
+        )}
+        {tab === "impostazioni" && (
+          <>
+            <SezioneNotifiche />
+            <SezioneAccessibilita />
+          </>
+        )}
+        {tab === "famiglia" && <SezioneFamiglia />}
+
+        {/* ── Overlay upsell — solo ospite ─────────────────────────── */}
+        {isGuest && (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 py-12"
+            style={{ backdropFilter: "blur(10px)", background: "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1))", zIndex: 20 }}
+          >
+            <div className="w-32 h-32 rounded-full" style={{ backgroundColor: COLORS.primary }} />
+            <p className="text-lg font-bold text-ink text-center">
+              Sblocca la tua esperienza completa
+            </p>
+            <Link href="/onboarding/registrati" className="w-full max-w-xs">
+              <button
+                className="w-full py-3 rounded-full text-sm font-bold text-white"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                Registrati gratuitamente
+              </button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
