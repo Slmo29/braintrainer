@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { COLORS } from "@/lib/design-tokens";
@@ -14,10 +14,17 @@ const RELAZIONE_STYLE: Record<string, { bg: string; text: string }> = {
   Nipote:  { bg: "#E0F7FA", text: "#00838F" },
 };
 
+type Filtro = "tutti" | "da_leggere" | "letti";
+const FILTRO_LABEL: Record<Filtro, string> = {
+  tutti: "Tutti",
+  da_leggere: "Da leggere",
+  letti: "Letti",
+};
+
 export default function MessaggiPage() {
   const router = useRouter();
   const isGuest = useUserStore((s) => s.isGuest);
-  const messaggi = mockMessaggiFamiliari;
+  const [filtro, setFiltro] = useState<Filtro>("tutti");
 
   useEffect(() => {
     if (isGuest) {
@@ -30,12 +37,18 @@ export default function MessaggiPage() {
     };
   }, [isGuest]);
 
+  const messaggiFiltrati = mockMessaggiFamiliari.filter((msg) => {
+    if (filtro === "da_leggere") return !msg.letto;
+    if (filtro === "letti") return msg.letto;
+    return true;
+  });
+
   return (
     <div
-      className="flex flex-col px-4 pt-6 gap-6"
-      style={isGuest ? { overflow: "hidden", height: "100dvh" } : undefined}
+      className="flex flex-col px-4 pt-6 gap-5"
+      style={isGuest ? { height: "100dvh", overflow: "hidden" } : undefined}
     >
-      {/* Header */}
+      {/* Header — non blurrato */}
       <div className="flex items-center justify-between flex-shrink-0">
         <button
           onClick={() => router.push("/home")}
@@ -49,17 +62,39 @@ export default function MessaggiPage() {
 
       <h1 className="text-2xl font-extrabold text-ink -mt-2 flex-shrink-0">I tuoi messaggi</h1>
 
-      {/* Lista messaggi + overlay */}
-      <div className="relative flex-1 rounded-2xl overflow-hidden" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
-        {messaggi.map((msg, i) => {
-          const relStyle = RELAZIONE_STYLE[msg.relazione] ?? { bg: COLORS.primaryLight, text: COLORS.primary };
-          return (
-            <div key={msg.id}>
-              <div className="px-4 py-4 flex flex-col gap-1.5" style={!msg.letto ? { backgroundColor: "#C8E9F2" } : undefined}>
+      {/* Contenuto blurrabile — pills + lista, esteso a piena larghezza */}
+      <div className="relative flex-1 flex flex-col gap-3 -mx-4" style={isGuest ? { overflow: "hidden" } : undefined}>
+        {/* Filter pills */}
+        <div className="flex gap-2 overflow-x-auto flex-shrink-0 px-4" style={{ scrollbarWidth: "none" }}>
+          {(["tutti", "da_leggere", "letti"] as Filtro[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFiltro(f)}
+              className="flex items-center px-4 py-1.5 rounded-full text-sm font-semibold flex-shrink-0 transition-all"
+              style={{
+                backgroundColor: filtro === f ? COLORS.primary : "#E6E7EB",
+                color: filtro === f ? "#FFFFFF" : COLORS.inkMuted,
+              }}
+            >
+              {FILTRO_LABEL[f]}
+            </button>
+          ))}
+        </div>
+
+        {/* Lista messaggi — card separate */}
+        <div className="flex-1 flex flex-col gap-3 px-4">
+          {messaggiFiltrati.map((msg) => {
+            const relStyle = RELAZIONE_STYLE[msg.relazione] ?? { bg: COLORS.primaryLight, text: COLORS.primary };
+            return (
+              <div
+                key={msg.id}
+                className="rounded-2xl px-4 py-4 flex flex-col gap-1.5"
+                style={{
+                  backgroundColor: !msg.letto ? "#EAF4F8" : COLORS.surface,
+                  border: `1px solid ${COLORS.border}`,
+                }}
+              >
                 <div className="flex items-center gap-2">
-                  {!msg.letto && (
-                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: "#16A34A" }} />
-                  )}
                   <span className="font-bold text-ink text-sm">{msg.mittente}</span>
                   <span
                     className="text-xs font-semibold px-2 py-0.5 rounded-full"
@@ -73,23 +108,32 @@ export default function MessaggiPage() {
                   {msg.testo}
                 </p>
               </div>
-              {i < messaggi.length - 1 && (
-                <div style={{ height: 1, backgroundColor: COLORS.border }} />
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
 
-        {/* Overlay upsell — solo ospite */}
+          {messaggiFiltrati.length === 0 && (
+            <p className="text-sm text-center py-8" style={{ color: COLORS.inkMuted }}>
+              Nessun messaggio
+            </p>
+          )}
+        </div>
+
+        {/* Overlay upsell — solo ospite, copre pills + lista */}
         {isGuest && (
           <div
             className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6"
-            style={{ backdropFilter: "blur(10px)", background: "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1))" }}
+            style={{
+              backdropFilter: "blur(10px)",
+              background: "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1))",
+              zIndex: 20,
+            }}
           >
-            <div
-              className="w-32 h-32 rounded-full"
-              style={{ backgroundColor: COLORS.primary }}
-            />
+            <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
             <p className="text-lg font-bold text-ink text-center">
               Sblocca la tua esperienza completa
             </p>

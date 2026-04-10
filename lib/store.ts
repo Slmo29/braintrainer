@@ -38,6 +38,8 @@ export interface UserState {
   eserciziFattiOggi: number;
   // flag cross-page: impostato da /esercizi per far aprire PausaAttivaView in /home
   pausaAttivaRichiesta: boolean;
+  // timestamp (ms) di inizio pausa attiva — null = nessuna pausa in corso
+  pausaAttivaInizio: number | null;
 }
 
 interface UserStore extends UserState {
@@ -46,6 +48,7 @@ interface UserStore extends UserState {
   aggiornaFamiliare: (id: string, data: Partial<Familiare>) => void;
   rimuoviFamiliare: (id: string) => void;
   setPausaAttivaRichiesta: (v: boolean) => void;
+  setPausaAttivaInizio: (v: number | null) => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -66,6 +69,7 @@ export const useUserStore = create<UserStore>((set) => ({
   esercizi_completati: 12,
   eserciziFattiOggi: mockEserciziOggi, // TODO: da Supabase
   pausaAttivaRichiesta: false,
+  pausaAttivaInizio: null,
 
   // Familiari mock
   familiari: [
@@ -89,6 +93,7 @@ export const useUserStore = create<UserStore>((set) => ({
 
   setUser: (data) => set((s) => ({ ...s, ...data })),
   setPausaAttivaRichiesta: (v) => set({ pausaAttivaRichiesta: v }),
+  setPausaAttivaInizio: (v) => set({ pausaAttivaInizio: v }),
 
   aggiungiMedaglia: (id) =>
     set((s) => ({

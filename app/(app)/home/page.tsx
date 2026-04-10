@@ -14,7 +14,7 @@ import { PausaAttivaModal, CheckCircles } from "@/components/ui/pausa-attiva-mod
 const GIORNO_INDEX: Record<string, number> = { Lun: 1, Mar: 2, Mer: 3, Gio: 4, Ven: 5, Sab: 6, Dom: 7 };
 const OFFSET_DA_LUNEDI: Record<string, number> = { Lun: 0, Mar: 1, Mer: 2, Gio: 3, Ven: 4, Sab: 5, Dom: 6 };
 const LIMITE_ESERCIZI_GIORNO = 5;
-const PAUSA_SECONDI = 15 * 60;
+const PAUSA_DURATA_S = 24 * 60 * 60; // 24h in secondi
 
 
 const ATTIVITA_PAUSA = [
@@ -89,9 +89,10 @@ function StreakCircles({ isGuest }: { isGuest?: boolean }) {
 
 
 function PausaAttivaView({ secondiRimasti }: { secondiRimasti: number }) {
-  const mm = String(Math.floor(secondiRimasti / 60)).padStart(2, "0");
+  const hh = String(Math.floor(secondiRimasti / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((secondiRimasti % 3600) / 60)).padStart(2, "0");
   const ss = String(secondiRimasti % 60).padStart(2, "0");
-  const timerLabel = secondiRimasti > 0 ? `Riprendi tra ${mm}:${ss}` : "Pronto a riprendere!";
+  const timerLabel = secondiRimasti > 0 ? `Riprendi tra ${hh}:${mm}:${ss}` : "Pronto a riprendere!";
 
   return (
     <>
@@ -149,31 +150,31 @@ const UPSELL_FEATURES = [
 ];
 
 export default function HomePage() {
-  const { nome, isGuest, eserciziFattiOggi, pausaAttivaRichiesta, setPausaAttivaRichiesta } = useUserStore();
+  const { nome, isGuest, eserciziFattiOggi, pausaAttivaRichiesta, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio } = useUserStore();
   const [mostraPausa, setMostraPausa] = useState(false);
-  const [pausaAttiva, setPausaAttiva] = useState(false);
-  const [secondiRimasti, setSecondiRimasti] = useState(PAUSA_SECONDI);
+  const [secondiRimasti, setSecondiRimasti] = useState(0);
 
-  // Risponde al flag impostato dalla pagina /esercizi quando il limite è raggiunto
+  const pausaAttiva = pausaAttivaInizio !== null && secondiRimasti > 0;
+
+  // Attiva la pausa impostando il timestamp nello store
   useEffect(() => {
     if (pausaAttivaRichiesta) {
-      setPausaAttiva(true);
+      setPausaAttivaInizio(Date.now());
       setPausaAttivaRichiesta(false);
     }
-  }, [pausaAttivaRichiesta, setPausaAttivaRichiesta]);
+  }, [pausaAttivaRichiesta, setPausaAttivaRichiesta, setPausaAttivaInizio]);
 
+  // Countdown calcolato dal timestamp persistente
   useEffect(() => {
-    if (!pausaAttiva || secondiRimasti <= 0) return;
-    const t = setInterval(() => setSecondiRimasti((s) => {
-      if (s <= 1) {
-        clearInterval(t);
-        setTimeout(() => setPausaAttiva(false), 1500);
-        return 0;
-      }
-      return s - 1;
-    }), 1000);
+    if (pausaAttivaInizio === null) { setSecondiRimasti(0); return; }
+    const calcola = () => {
+      const rimasti = PAUSA_DURATA_S - Math.floor((Date.now() - pausaAttivaInizio) / 1000);
+      if (rimasti <= 0) { setPausaAttivaInizio(null); setSecondiRimasti(0); } else { setSecondiRimasti(rimasti); }
+    };
+    calcola();
+    const t = setInterval(calcola, 1000);
     return () => clearInterval(t);
-  }, [pausaAttiva, secondiRimasti]);
+  }, [pausaAttivaInizio, setPausaAttivaInizio]);
 
   const jsDay = new Date().getDay();
   const oggiIndex = jsDay === 0 ? 7 : jsDay;
@@ -417,7 +418,7 @@ export default function HomePage() {
         <PausaAttivaModal
           nome={nome ?? ""}
           isGuest={isGuest}
-          onVaiPausa={() => { setMostraPausa(false); setPausaAttiva(true); }}
+          onVaiPausa={() => { setMostraPausa(false); setPausaAttivaInizio(Date.now()); }}
           onContinua={() => { setMostraPausa(false); window.location.href = `/esercizi/${esercizioGiorno.id}`; }}
           onClose={() => setMostraPausa(false)}
         />

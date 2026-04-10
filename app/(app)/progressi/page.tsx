@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Card from "@/components/ui/card";
-import { mockMedaglie, mockProgressiSettimanali, mockScoreCategorie, mockStoricoGiornaliero, mockTotaleSettimanaScorsa } from "@/lib/mock-data";
+import { mockMedaglie, mockProgressiSettimanali, mockScoreCategorie, mockStoricoGiornaliero, mockTotaleSettimanaScorsa, mockEsercizioDelGiorno } from "@/lib/mock-data";
 import { useUserStore } from "@/lib/store";
 import { COLORS, CATEGORIA_COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
@@ -167,8 +167,61 @@ function CalendarioMensile({
 // ── Card area cerebrale ──────────────────────────────────────────────────────
 
 type Periodo = "settimana" | "mese" | "anno";
-const SLICE: Record<Periodo, number> = { settimana: 4, mese: 8, anno: Infinity };
 const PERIODO_LABEL: Record<Periodo, string> = { settimana: "Settimana", mese: "Mese", anno: "Anno" };
+
+// Today fixed to mock context: Apr 10, 2026 (Venerdì)
+const MOCK_TODAY = new Date(2026, 3, 10);
+const MESI_IT_MAP: Record<string, number> = {
+  "Gen":0,"Feb":1,"Mar":2,"Apr":3,"Mag":4,"Giu":5,
+  "Lug":6,"Ago":7,"Set":8,"Ott":9,"Nov":10,"Dic":11,
+};
+const MESI_IT_SHORT = ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
+const DAY_LABELS = ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
+
+function parseStoricoLabel(label: string): Date {
+  const [d, m] = label.split(" ");
+  return new Date(2026, MESI_IT_MAP[m], parseInt(d));
+}
+
+type StoricoEntry = { label: string; livello: number };
+
+function buildPeriodData(storico: StoricoEntry[], periodo: Periodo): { label: string; livello: number | null }[] {
+  const today = MOCK_TODAY;
+
+  if (periodo === "settimana") {
+    const day = today.getDay(); // Ven = 5
+    const diffToMon = day === 0 ? -6 : 1 - day;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + diffToMon);
+    return DAY_LABELS.map((dayLabel, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      if (d > today) return { label: dayLabel, livello: null };
+      const dateLabel = `${d.getDate()} ${MESI_IT_SHORT[d.getMonth()]}`;
+      const match = storico.find((s) => s.label === dateLabel);
+      return { label: dayLabel, livello: match?.livello ?? null };
+    });
+  }
+
+  if (periodo === "mese") {
+    const currentMonth = today.getMonth();
+    return storico
+      .filter((s) => parseStoricoLabel(s.label).getMonth() === currentMonth)
+      .map((s) => ({ label: s.label, livello: s.livello }));
+  }
+
+  // anno: raggruppa per mese, media livello
+  const byMonth = new Map<string, number[]>();
+  for (const s of storico) {
+    const key = MESI_IT_SHORT[parseStoricoLabel(s.label).getMonth()];
+    if (!byMonth.has(key)) byMonth.set(key, []);
+    byMonth.get(key)!.push(s.livello);
+  }
+  return [...byMonth.entries()].map(([label, levels]) => ({
+    label,
+    livello: Math.round(levels.reduce((a, b) => a + b, 0) / levels.length),
+  }));
+}
 
 const TREND_TEXTS: Record<string, Record<string, string>> = {
   Memoria: {
@@ -364,16 +417,26 @@ function DettaglioGiorno({ dateStr }: { dateStr: string }) {
     <div className="flex flex-col gap-3">
       <p className="text-base font-bold text-ink">{isToday ? "Oggi" : label}</p>
       {sessioni.length === 0 ? (
-        <div className="rounded-xl p-4 flex flex-col gap-1" style={{ backgroundColor: COLORS.surfaceAlt }}>
-          <p className="text-sm font-semibold" style={{ color: COLORS.inkSecondary }}>
-            {isToday ? "Nessuna attività ancora oggi" : "Nessuna attività in questo giorno"}
-          </p>
-          {isToday && (
-            <p className="text-xs" style={{ color: COLORS.inkMuted }}>
-              Vai alla home e inizia il tuo allenamento!
+        isToday ? (
+          <div className="flex flex-col gap-1.5">
+            <p className="text-base" style={{ color: COLORS.inkSecondary }}>
+              Ancora nessuna attività oggi
             </p>
-          )}
-        </div>
+            <Link
+              href={`/esercizi/${mockEsercizioDelGiorno.id}`}
+              className="text-base font-semibold underline"
+              style={{ color: COLORS.primary }}
+            >
+              Vai all'esercizio del giorno
+            </Link>
+          </div>
+        ) : (
+          <div className="rounded-xl p-4" style={{ backgroundColor: COLORS.surfaceAlt }}>
+            <p className="text-sm font-semibold" style={{ color: COLORS.inkSecondary }}>
+              Nessuna attività in questo giorno
+            </p>
+          </div>
+        )
       ) : (
         <div className="flex flex-col">
           {sessioni.map((s, i) => {
@@ -545,7 +608,7 @@ function FiltroPills({ filtro, setFiltro }: { filtro: FiltroAttivita; setFiltro:
             onClick={() => setFiltro(f)}
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold flex-shrink-0 transition-all"
             style={{
-              backgroundColor: isActive ? (cc?.text ?? COLORS.primary) : COLORS.background,
+              backgroundColor: isActive ? (cc?.text ?? COLORS.primary) : "#E6E7EB",
               color: isActive ? "#FFFFFF" : COLORS.inkMuted,
             }}
           >
@@ -583,18 +646,22 @@ function AttivitaTab({ filtro: filtroExt, setFiltro: setFiltroExt, hidePills }: 
     : (CATEGORIA_COLORS[filtro]?.text ?? COLORS.primary);
 
   // Build chart data
-  const sliceN = SLICE[periodo];
   const chartData = filtro === "tutti"
-    ? mockScoreCategorie[0].storicoLivello.slice(-sliceN).map((d, i) => {
-        const obj: Record<string, unknown> = { label: d.label };
-        mockScoreCategorie.forEach((cat) => {
-          obj[cat.categoria] = cat.storicoLivello.slice(-sliceN)[i]?.livello;
+    ? (() => {
+        const refData = buildPeriodData(mockScoreCategorie[0].storicoLivello, periodo);
+        return refData.map((point, i) => {
+          const obj: Record<string, unknown> = { label: point.label };
+          mockScoreCategorie.forEach((cat) => {
+            const catData = buildPeriodData(cat.storicoLivello, periodo);
+            obj[cat.categoria] = catData[i]?.livello ?? undefined;
+          });
+          return obj;
         });
-        return obj;
-      })
-    : (mockScoreCategorie.find((c) => c.categoria.toLowerCase() === filtro)
-        ?.storicoLivello.slice(-sliceN) ?? [])
-        .map((d) => ({ label: d.label, livello: d.livello }));
+      })()
+    : buildPeriodData(
+        mockScoreCategorie.find((c) => c.categoria.toLowerCase() === filtro)?.storicoLivello ?? [],
+        periodo
+      ).map((d) => ({ label: d.label, livello: d.livello ?? undefined }));
 
   // Stats
   const livelloMedio       = Math.round(filteredCats.reduce((s, c) => s + c.livello, 0) / filteredCats.length);
@@ -610,27 +677,21 @@ function AttivitaTab({ filtro: filtroExt, setFiltro: setFiltroExt, hidePills }: 
       <div className="rounded-2xl p-4" style={{ backgroundColor: COLORS.surface, border: `1px solid ${COLORS.border}` }}>
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-bold text-ink">Andamento generale</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>{PERIODO_LABEL[periodo]}</span>
-            <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: activeColor }} />
-          </div>
-        </div>
-
-        {/* Period pills */}
-        <div className="flex gap-2 mb-3">
-          {(["settimana", "mese", "anno"] as Periodo[]).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriodo(p)}
-              className="text-xs font-semibold px-3 py-1 rounded-full transition-all"
-              style={{
-                backgroundColor: periodo === p ? activeColor : "#F0F0F0",
-                color: periodo === p ? "#FFFFFF" : "#6B7280",
-              }}
-            >
-              {PERIODO_LABEL[p]}
-            </button>
-          ))}
+          {/* Dropdown periodo */}
+          <select
+            value={periodo}
+            onChange={(e) => setPeriodo(e.target.value as Periodo)}
+            className="text-xs font-semibold rounded-lg px-2 py-1 border transition-all outline-none cursor-pointer"
+            style={{
+              backgroundColor: "#F3F4F6",
+              borderColor: COLORS.border,
+              color: COLORS.inkSecondary,
+            }}
+          >
+            {(["settimana", "mese", "anno"] as Periodo[]).map((p) => (
+              <option key={p} value={p}>{PERIODO_LABEL[p]}</option>
+            ))}
+          </select>
         </div>
 
         <div style={{ height: 160 }}>
@@ -639,17 +700,17 @@ function AttivitaTab({ filtro: filtroExt, setFiltro: setFiltroExt, hidePills }: 
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
               <XAxis dataKey="label" tick={{ fontSize: 9, fill: COLORS.inkMuted }} axisLine={false} tickLine={false} />
               <YAxis
-                domain={[1, 6]}
-                ticks={[1, 2, 3, 4, 5, 6]}
-                tickFormatter={(v) => `Liv ${v}`}
+                domain={[1, 10]}
+                ticks={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+                tickFormatter={(v) => `L.${v}`}
                 tick={{ fontSize: 9, fill: COLORS.inkMuted }}
                 axisLine={false}
                 tickLine={false}
-                width={36}
+                width={30}
               />
               <Tooltip
                 contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: 8, fontSize: 12 }}
-                formatter={(v, name) => [v != null ? `Liv ${v}` : "", name]}
+                formatter={(v, name) => [v != null ? `L.${v}` : "", name]}
               />
               {filtro === "tutti"
                 ? mockScoreCategorie.map((cat) => {
@@ -727,8 +788,12 @@ function AttivitaTab({ filtro: filtroExt, setFiltro: setFiltroExt, hidePills }: 
         })()}
       </div>
 
-      {/* Testo discorsivo — solo per categoria singola */}
-      {filteredCats.length === 1 && (
+      {/* Testo discorsivo */}
+      {filtro === "tutti" ? (
+        <p className="text-sm leading-relaxed" style={{ color: COLORS.inkSecondary }}>
+          Stai andando molto bene! Hai risposto correttamente alla maggior parte delle domande. Continua così, ogni giorno fa la differenza.
+        </p>
+      ) : filteredCats.length === 1 && (
         <p className="text-sm leading-relaxed" style={{ color: COLORS.inkSecondary }}>
           {TREND_TEXTS[filteredCats[0].categoria]?.[filteredCats[0].trend] ?? ""}
         </p>
@@ -848,7 +913,11 @@ export default function ProgressiPage() {
                   <p className="text-xs" style={{ color: stateConfig.color }}>{stateConfig.txt}</p>
                 </div>
               </CalendarioMensile>
-              {selectedDate && <DettaglioGiorno dateStr={selectedDate} />}
+              {(() => {
+                const now = new Date();
+                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+                return <DettaglioGiorno dateStr={selectedDate ?? todayStr} />;
+              })()}
             </>
           );
         })()}
@@ -909,10 +978,12 @@ export default function ProgressiPage() {
             className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 py-12"
             style={{ backdropFilter: "blur(10px)", background: "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1))", zIndex: 20 }}
           >
-            <div
-              className="w-32 h-32 rounded-full"
-              style={{ backgroundColor: COLORS.primary }}
-            />
+            <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
             <p className="text-lg font-bold text-ink text-center">
               Sblocca la tua esperienza completa
             </p>

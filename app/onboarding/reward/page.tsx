@@ -49,12 +49,11 @@ export default function OnboardingRewardPage() {
         </div>
         <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted mt-1">Hai guadagnato la medaglia</p>
         <h1 className="text-xl font-extrabold text-ink mt-0.5">"Prima Sfida"</h1>
-        <p className="text-sm text-ink-secondary mt-0.5 max-w-[220px]">La tua memoria è più forte di quanto pensi!</p>
       </div>
 
       {/* Card Lo sapevi */}
       <div
-        className={`rounded-lg p-4 w-full mt-4 transition-all duration-700 delay-300 ${animato ? "opacity-100" : "opacity-0"}`}
+        className={`rounded-lg p-4 w-full mt-8 transition-all duration-700 delay-300 ${animato ? "opacity-100" : "opacity-0"}`}
         style={{ backgroundColor: COLORS.surfaceAlt, border: `1px solid ${COLORS.primary}22` }}
       >
         <div className="flex items-center gap-1.5">

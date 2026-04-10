@@ -118,6 +118,7 @@ function SezioneInfo() {
         <InfoField
           label={<><Mail width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} /> Email</>}
           editing={editing}
+          last
         >
           {editing
             ? <input className={inputCls} type="email" value={draft.email} placeholder="tua@email.it" onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
@@ -483,14 +484,14 @@ function FamiliareCard({ familiare, avatarColor, onAggiorna, onRimuovi }: {
 }
 
 // ─── Helper fields ────────────────────────────────────────────────────────────
-function InfoField({ label, editing, children }: { label: React.ReactNode; editing: boolean; children: React.ReactNode }) {
+function InfoField({ label, editing, last, children }: { label: React.ReactNode; editing: boolean; last?: boolean; children: React.ReactNode }) {
   return (
     <div>
       <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: COLORS.inkMuted }}>
         {label}
       </p>
       {children}
-      {!editing && <div className="mt-3 border-b border-border" />}
+      {!editing && !last && <div className="mt-3 border-b border-border" />}
     </div>
   );
 }
@@ -567,27 +568,12 @@ export default function ProfiloPage() {
               <div>
                 <h2 className="text-xl font-extrabold text-ink">{nome}</h2>
                 <p className="text-sm text-ink-muted mt-0.5">Membro dal {membroDal}</p>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.streak }}>
-                    <FireFlame width={16} height={16} strokeWidth={1.5} color={COLORS.streak} />
-                    {streak} giorni
-                  </span>
-                  <span className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.gold }}>
-                    <Medal width={16} height={16} strokeWidth={1.5} color={COLORS.gold} />
-                    {medaglieCount} medaglie
-                  </span>
-                </div>
               </div>
             </div>
             <SezioneInfo />
           </>
         )}
-        {tab === "impostazioni" && (
-          <>
-            <SezioneNotifiche />
-            <SezioneAccessibilita />
-          </>
-        )}
+        {tab === "impostazioni" && <SezioneNotifiche />}
         {tab === "famiglia" && <SezioneFamiglia />}
 
         {/* ── Overlay upsell — solo ospite ─────────────────────────── */}
@@ -596,7 +582,12 @@ export default function ProfiloPage() {
             className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 py-12"
             style={{ backdropFilter: "blur(10px)", background: "linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1))", zIndex: 20 }}
           >
-            <div className="w-32 h-32 rounded-full" style={{ backgroundColor: COLORS.primary }} />
+            <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
             <p className="text-lg font-bold text-ink text-center">
               Sblocca la tua esperienza completa
             </p>

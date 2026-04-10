@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Btn from "@/components/ui/btn";
 import { COLORS } from "@/lib/design-tokens";
-import { Running, WarningTriangle } from "iconoir-react";
+import { Running } from "iconoir-react";
 
 const LIMITE_ESERCIZI_GIORNO = 5;
 
@@ -43,47 +43,34 @@ export function PausaAttivaModal({ nome, isGuest, onVaiPausa, onContinua, onClos
       >
         <div className="w-10 h-1 rounded-full" style={{ backgroundColor: "#D1D5DB" }} />
 
-        {isGuest ? (
-          <>
-            <CheckCircles />
-            <h2 className="text-lg font-extrabold text-ink text-center whitespace-nowrap">Ottimo! 5 esercizi fatti 🎉</h2>
-            <p className="text-sm text-center" style={{ color: COLORS.inkSecondary }}>
-              Stai allenando bene la mente.<br />
-              <strong className="text-ink">Non perdere questi progressi!</strong>
-            </p>
-            <div className="w-full flex items-center gap-2 rounded-xl px-4 py-3" style={{ backgroundColor: "#FEF9C3" }}>
-              <WarningTriangle width={20} height={20} strokeWidth={1.5} color="#92400E" className="flex-shrink-0" />
-              <p className="font-semibold leading-snug" style={{ color: "#92400E", fontSize: 13 }}>
-                Senza registrazione i tuoi dati andranno persi alla chiusura dell&apos;app.
-              </p>
-            </div>
+        <>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
+            <Running width={28} height={28} strokeWidth={1.5} color="#FFFFFF" />
+          </div>
+          <h2 className="text-xl font-extrabold text-ink text-center">
+            {isGuest ? "Ottimo! 5 esercizi fatti" : `Ottimo lavoro, ${nome}!`}
+          </h2>
+          <p className="text-sm text-center" style={{ color: COLORS.inkSecondary }}>
+            {isGuest ? (
+              <>Stai allenando bene la mente.<br />Non perdere questi progressi.</>
+            ) : (
+              <>Hai completato {LIMITE_ESERCIZI_GIORNO} esercizi oggi.<br />La mente ora ha bisogno di consolidare.<br />Prenditi una pausa!</>
+            )}
+          </p>
+          <CheckCircles />
+          {isGuest ? (
             <Link href="/onboarding/registrati" className="w-full">
-              <button className="w-full py-3 rounded-xl text-sm font-bold text-white" style={{ backgroundColor: COLORS.primary }}>
-                Registrati e salva i miei progressi
+              <button className="w-full py-3 rounded-full text-sm font-bold text-white" style={{ backgroundColor: COLORS.primary }}>
+                Registrati e salva i tuoi progressi
               </button>
             </Link>
-            <button className="text-sm font-semibold" style={{ color: COLORS.inkMuted }} onClick={onContinua}>
-              Continua senza salvare
-            </button>
-          </>
-        ) : (
-          <>
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
-              <Running width={28} height={28} strokeWidth={1.5} color="#FFFFFF" />
-            </div>
-            <h2 className="text-xl font-extrabold text-ink text-center">Ottimo lavoro, {nome}!</h2>
-            <p className="text-sm text-center" style={{ color: COLORS.inkSecondary }}>
-              Hai completato {LIMITE_ESERCIZI_GIORNO} esercizi oggi.<br />
-              La mente ora ha bisogno di consolidare.<br />
-              Prenditi una pausa!
-            </p>
-            <CheckCircles />
+          ) : (
             <Btn size="lg" className="w-full" onClick={onVaiPausa}>Vai alla pausa attiva</Btn>
-            <button className="text-sm font-semibold" style={{ color: COLORS.primary }} onClick={onContinua}>
-              Continua comunque
-            </button>
-          </>
-        )}
+          )}
+          <button className="text-sm font-semibold" style={{ color: COLORS.primary }} onClick={onContinua}>
+            Continua comunque
+          </button>
+        </>
       </div>
     </div>
   );

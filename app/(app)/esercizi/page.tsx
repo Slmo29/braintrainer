@@ -6,7 +6,7 @@ import Card from "@/components/ui/card";
 import { mockEsercizi, mockCategorie, mockScoreCategorie } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
-import { Timer, Lock } from "iconoir-react";
+import { Timer, Lock, Running } from "iconoir-react";
 import { useUserStore } from "@/lib/store";
 import { PausaAttivaModal } from "@/components/ui/pausa-attiva-modal";
 
@@ -20,9 +20,10 @@ const TABS = [
 
 export default function EserciziPage() {
   const router = useRouter();
-  const { nome, isGuest, eserciziFattiOggi, setPausaAttivaRichiesta } = useUserStore();
+  const { nome, isGuest, eserciziFattiOggi, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio } = useUserStore();
   const [tab, setTab] = useState("memoria");
   const [mostraPausa, setMostraPausa] = useState(false);
+  const [mostraConfermaInterruzione, setMostraConfermaInterruzione] = useState(false);
   const [esercizioTarget, setEsercizioTarget] = useState<string | null>(null);
 
   // TODO: sostituire con query Supabase — SELECT livello FROM progressi_utente WHERE categoria = tab AND user_id = ...
@@ -38,8 +39,12 @@ export default function EserciziPage() {
   }
 
   function handleClickEsercizio(id: string, locked: boolean) {
-    if (locked) return;
-    if (eserciziFattiOggi >= LIMITE_ESERCIZI_GIORNO) {
+    if (locked) { router.push("/onboarding/registrati"); return; }
+    if (pausaAttivaInizio !== null) {
+      // Pausa attiva → chiedi se interrompere
+      setEsercizioTarget(id);
+      setMostraConfermaInterruzione(true);
+    } else if (eserciziFattiOggi >= LIMITE_ESERCIZI_GIORNO) {
       setEsercizioTarget(id);
       setMostraPausa(true);
     } else {
@@ -96,10 +101,10 @@ export default function EserciziPage() {
               className="text-left w-full"
               onClick={() => handleClickEsercizio(esercizio.id, locked)}
             >
-              <Card padding="md" className={locked ? "opacity-70" : "active:scale-[0.98] transition-transform"}>
+              <Card padding="md" className={locked ? "" : "active:scale-[0.98] transition-transform"}>
                 <div className="flex items-center gap-4">
                   <div
-                    className="w-14 h-14 rounded-md flex items-center justify-center flex-shrink-0"
+                    className={`w-14 h-14 rounded-md flex items-center justify-center flex-shrink-0 ${locked ? "opacity-50" : ""}`}
                     style={{ backgroundColor: locked ? COLORS.background : (cc?.bg ?? COLORS.surfaceAlt) }}
                   >
                     {locked ? (
@@ -109,21 +114,21 @@ export default function EserciziPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-bold leading-snug" style={{ color: locked ? COLORS.inkMuted : COLORS.inkPrimary }}>{esercizio.titolo}</h3>
-                    <div className="flex items-center gap-1 text-xs" style={{ color: COLORS.inkMuted }}>
+                    <h3 className={`text-base font-bold leading-snug ${locked ? "opacity-50" : ""}`} style={{ color: locked ? COLORS.inkMuted : COLORS.inkPrimary }}>{esercizio.titolo}</h3>
+                    <div className={`flex items-center gap-1 text-xs ${locked ? "opacity-50" : ""}`} style={{ color: COLORS.inkMuted }}>
                       <Timer width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} />
                       <span>{Math.ceil((esercizio.durata_stimata ?? 60) / 60)} minuti</span>
                       <span>·</span>
                       <span>Livello {esercizio.livello}/6</span>
                     </div>
                     {locked && (
-                      <p className="text-xs font-semibold mt-1" style={{ color: COLORS.primary }}>
+                      <p className="text-xs font-bold mt-1 underline" style={{ color: COLORS.primary }}>
                         Registrati per sbloccare
                       </p>
                     )}
                   </div>
                   {locked
-                    ? <Lock width={18} height={18} strokeWidth={1.5} color={COLORS.inkMuted} className="flex-shrink-0" />
+                    ? <Lock width={18} height={18} strokeWidth={1.5} color={COLORS.inkMuted} className="flex-shrink-0 opacity-50" />
                     : <span className="text-ink-muted text-xl flex-shrink-0">›</span>
                   }
                 </div>
@@ -149,6 +154,49 @@ export default function EserciziPage() {
           }}
           onClose={() => setMostraPausa(false)}
         />
+      )}
+
+      {/* Modal conferma interruzione pausa attiva */}
+      {mostraConfermaInterruzione && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center px-4 pb-6"
+          style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+          onClick={() => setMostraConfermaInterruzione(false)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl px-6 pt-4 pb-6 flex flex-col items-center gap-4"
+            style={{ backgroundColor: "#FFFFFF" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 rounded-full" style={{ backgroundColor: "#D1D5DB" }} />
+            <h2 className="text-lg font-extrabold text-ink text-center">Sei sicuro di procedere?</h2>
+            <p className="text-sm text-center" style={{ color: "#5A5A72" }}>
+              Hai attivato la pausa attiva che dura 24h.<br />
+              Vuoi interromperla?
+            </p>
+            <button
+              className="w-full py-3 rounded-full text-sm font-bold text-white"
+              style={{ backgroundColor: COLORS.primary }}
+              onClick={() => {
+                setMostraConfermaInterruzione(false);
+                router.push("/home");
+              }}
+            >
+              Torna alla home
+            </button>
+            <button
+              className="text-xs font-semibold"
+              style={{ color: "#DC2626" }}
+              onClick={() => {
+                setPausaAttivaInizio(null);
+                setMostraConfermaInterruzione(false);
+                if (esercizioTarget) router.push(`/esercizi/${esercizioTarget}`);
+              }}
+            >
+              Interrompi la pausa<br />e prosegui all'esercizio
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

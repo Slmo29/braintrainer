@@ -150,6 +150,9 @@ export const mockScoreCategorie = [
       { label: "27 Mar", livello: 2 }, { label: "29 Mar", livello: 2 },
       { label: "31 Mar", livello: 3 }, { label: "1 Apr",  livello: 3 },
       { label: "2 Apr",  livello: 3 }, { label: "3 Apr",  livello: 3 },
+      { label: "6 Apr",  livello: 3 }, { label: "7 Apr",  livello: 3 },
+      { label: "8 Apr",  livello: 3 }, { label: "9 Apr",  livello: 4 },
+      { label: "10 Apr", livello: 4 },
     ],
   },
   {
@@ -172,6 +175,9 @@ export const mockScoreCategorie = [
       { label: "27 Mar", livello: 2 }, { label: "29 Mar", livello: 2 },
       { label: "31 Mar", livello: 2 }, { label: "1 Apr",  livello: 2 },
       { label: "2 Apr",  livello: 2 }, { label: "3 Apr",  livello: 2 },
+      { label: "6 Apr",  livello: 2 }, { label: "7 Apr",  livello: 2 },
+      { label: "8 Apr",  livello: 3 }, { label: "9 Apr",  livello: 3 },
+      { label: "10 Apr", livello: 3 },
     ],
   },
   {
@@ -194,6 +200,9 @@ export const mockScoreCategorie = [
       { label: "27 Mar", livello: 4 }, { label: "29 Mar", livello: 4 },
       { label: "31 Mar", livello: 4 }, { label: "1 Apr",  livello: 4 },
       { label: "2 Apr",  livello: 4 }, { label: "3 Apr",  livello: 4 },
+      { label: "6 Apr",  livello: 4 }, { label: "7 Apr",  livello: 4 },
+      { label: "8 Apr",  livello: 4 }, { label: "9 Apr",  livello: 5 },
+      { label: "10 Apr", livello: 5 },
     ],
   },
 ];
