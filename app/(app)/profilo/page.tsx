@@ -7,7 +7,7 @@ import Btn from "@/components/ui/btn";
 import Toggle from "@/components/ui/toggle";
 import Modal from "@/components/ui/modal";
 import AppSelect from "@/components/ui/app-select";
-import { useUserStore, type CanalNotifica, type DimensioneTesto, type Familiare } from "@/lib/store";
+import { useUserStore, type CanalNotifica, type Familiare } from "@/lib/store";
 import { mockMedaglie } from "@/lib/mock-data";
 import { COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
@@ -287,61 +287,6 @@ function SezioneNotifiche() {
             </div>
           </>
         )}
-      </div>
-    </Card>
-  );
-}
-
-// ─── Sezione Accessibilità ────────────────────────────────────────────────────
-const DIMENSIONI: { id: DimensioneTesto; label: string }[] = [
-  { id: "piccolo",      label: "Piccolo" },
-  { id: "normale",      label: "Normale" },
-  { id: "grande",       label: "Grande" },
-  { id: "molto grande", label: "Molto grande" },
-];
-
-function SezioneAccessibilita() {
-  const { dimensione_testo, alto_contrasto, setUser } = useUserStore();
-
-  return (
-    <Card padding="md">
-      <div className="flex items-center justify-between mb-4">
-        <SectionTitle>Accessibilità</SectionTitle>
-      </div>
-
-      <div className="flex flex-col gap-5">
-        {/* Dimensione testo */}
-        <div>
-          <p className="text-sm font-semibold text-ink mb-1">Dimensioni testo</p>
-          <p className="text-xs mb-3" style={{ color: COLORS.inkMuted }}>Scegli la dimensione del testo</p>
-          <div className="grid grid-cols-2 gap-2">
-            {DIMENSIONI.map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => setUser({ dimensione_testo: id })}
-                className="py-2.5 rounded-lg text-sm font-semibold border-2 transition-all"
-                style={{
-                  borderColor: dimensione_testo === id ? COLORS.primary : COLORS.border,
-                  backgroundColor: dimensione_testo === id ? COLORS.primaryLight : COLORS.surface,
-                  color: dimensione_testo === id ? COLORS.primary : COLORS.inkSecondary,
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-border" />
-
-        {/* Alto contrasto */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-semibold text-ink">Alto contrasto</p>
-            <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Migliora la leggibilità del testo</p>
-          </div>
-          <Toggle checked={alto_contrasto} onChange={(v) => setUser({ alto_contrasto: v })} />
-        </div>
       </div>
     </Card>
   );

@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { mockEserciziOggi } from "@/lib/mock-data";
 
 export type CanalNotifica = "whatsapp" | "sms" | "email";
-export type DimensioneTesto = "piccolo" | "normale" | "grande" | "molto grande";
 
 export interface Familiare {
   id: string;
@@ -27,9 +26,6 @@ export interface UserState {
   orario_notifica: string;
   canale_notifica: CanalNotifica;
   consenso_notifiche: boolean;
-  // TODO: sostituire con query Supabase — SELECT dimensione_testo, alto_contrasto FROM preferenze WHERE user_id = ...
-  dimensione_testo: DimensioneTesto;
-  alto_contrasto: boolean;
   medaglie: string[];
   streak: number;
   esercizi_completati: number;
@@ -62,8 +58,6 @@ export const useUserStore = create<UserStore>((set) => ({
   orario_notifica: "09:00",
   canale_notifica: "whatsapp",
   consenso_notifiche: true,
-  dimensione_testo: "normale",
-  alto_contrasto: false,
   medaglie: ["prima-sfida", "tre-giorni", "dieci-esercizi"],
   streak: 7,
   esercizi_completati: 12,
