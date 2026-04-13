@@ -8,10 +8,23 @@ import { mockMessaggiFamiliari } from "@/lib/mock-data";
 import { useUserStore } from "@/lib/store";
 import { ArrowLeft } from "iconoir-react";
 
+// TODO: da Supabase — il campo relazione viene da familiari.relazione (impostato al momento dell'invito)
+// JOIN messaggi m ON m.mittente_id = f.id LEFT JOIN familiari f ON f.utente_id = current_user_id
 const RELAZIONE_STYLE: Record<string, { bg: string; text: string }> = {
-  Figlio:  { bg: "#E8F0FE", text: "#3B5998" },
-  Figlia:  { bg: "#FCE4EC", text: "#C2185B" },
-  Nipote:  { bg: "#E0F7FA", text: "#00838F" },
+  "Figlio":            { bg: "#E8F0FE", text: "#3B5998" },
+  "Figlia":            { bg: "#FCE4EC", text: "#C2185B" },
+  "Nipote":            { bg: "#E0F7FA", text: "#00838F" },
+  "Pronipote":         { bg: "#E8F5E9", text: "#2E7D32" },
+  "Fratello":          { bg: "#FFF3E0", text: "#E65100" },
+  "Sorella":           { bg: "#F3E5F5", text: "#6A1B9A" },
+  "Genero":            { bg: "#E3F2FD", text: "#1565C0" },
+  "Nuora":             { bg: "#FBE9E7", text: "#BF360C" },
+  "Cognato":           { bg: "#F1F8E9", text: "#558B2F" },
+  "Cognata":           { bg: "#FCE4EC", text: "#AD1457" },
+  "Cugino":            { bg: "#E8EAF6", text: "#283593" },
+  "Cugina":            { bg: "#FFF8E1", text: "#F57F17" },
+  "Badante":           { bg: "#E0F2F1", text: "#00695C" },
+  "Amico di famiglia": { bg: "#F5F5F5", text: "#424242" },
 };
 
 type Filtro = "tutti" | "da_leggere" | "letti";

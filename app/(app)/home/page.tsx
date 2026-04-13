@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Card from "@/components/ui/card";
 import Btn from "@/components/ui/btn";
@@ -144,6 +145,7 @@ function PausaAttivaView({ secondiRimasti }: { secondiRimasti: number }) {
 
 
 export default function HomePage() {
+  const router = useRouter();
   const { nome, isGuest, eserciziFattiOggi, pausaAttivaRichiesta, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio } = useUserStore();
   const [mostraPausa, setMostraPausa] = useState(false);
   const [secondiRimasti, setSecondiRimasti] = useState(0);
@@ -271,11 +273,13 @@ export default function HomePage() {
                         {/* Meta */}
                         <div className="flex items-center gap-1 text-xs font-medium">
                           {esercizio.completato && isGuest ? (
-                            <Link href="/onboarding/registrati" onClick={(e) => e.stopPropagation()}>
-                              <span className="underline font-semibold" style={{ color: COLORS.primary }}>
-                                Registrati per sbloccare i risultati
-                              </span>
-                            </Link>
+                            <button
+                              className="text-xs font-semibold underline whitespace-nowrap"
+                              style={{ color: COLORS.primary, textDecorationColor: COLORS.primary }}
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/onboarding/registrati"); }}
+                            >
+                              Registrati per sbloccare i risultati
+                            </button>
                           ) : esercizio.completato && esercizio.risultato ? (
                             <span style={{ color: COLORS.inkMuted }}>
                               {formatTempo(esercizio.risultato.tempo_secondi)} minuti · {esercizio.risultato.accuratezza}% accuratezza
@@ -288,13 +292,13 @@ export default function HomePage() {
                         </div>
                       </div>
                       {/* Right icon */}
-                      {esercizio.completato ? (
+                      {esercizio.completato && !isGuest ? (
                         <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.primaryLight }}>
                           <Check width={14} height={14} strokeWidth={2} color={COLORS.primary} />
                         </div>
-                      ) : (
+                      ) : !esercizio.completato ? (
                         <span className="text-lg font-bold flex-shrink-0" style={{ color: COLORS.primary }}>›</span>
-                      )}
+                      ) : null}
                     </div>
                   );
 

@@ -231,10 +231,10 @@ function SezioneNotifiche() {
             </div>
             <div>
               <p className="text-sm font-semibold text-ink-secondary mb-2">Canale preferito</p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2 my-4">
                 {CANALI.map((c) => (
                   <button key={c.id} onClick={() => handleSelezionaCanale(c.id)}
-                    className="min-h-[60px] rounded-md flex flex-col items-center justify-center gap-1 text-sm font-semibold border-2 transition-all"
+                    className="min-h-[60px] py-4 rounded-md flex flex-col items-center justify-center gap-2 text-sm font-semibold border-2 transition-all"
                     style={{
                       borderColor: canale_notifica === c.id ? COLORS.primary : COLORS.border,
                       backgroundColor: canale_notifica === c.id ? `${COLORS.primaryLight}55` : COLORS.surface,
@@ -242,7 +242,7 @@ function SezioneNotifiche() {
                     }}>
                     <AppIcon
                       name={c.icona}
-                      size={22}
+                      size={28}
                       color={canale_notifica === c.id ? COLORS.primary : COLORS.inkMuted}
                     />
                     {c.label}
@@ -340,7 +340,7 @@ const PARENTELE = [
 
 // ─── Sezione Famiglia ─────────────────────────────────────────────────────────
 function SezioneFamiglia() {
-  const { familiari, setUser, rimuoviFamiliare } = useUserStore();
+  const { familiari, setUser, rimuoviFamiliare, isGuest } = useUserStore();
   const [showInvita, setShowInvita] = useState(false);
   const [inviatoOk, setInviatoOk] = useState(false);
   const [draft, setDraft] = useState({ contatto: "", nome: "", parentela: "" });
@@ -399,19 +399,21 @@ function SezioneFamiglia() {
         )}
 
         {/* Spacer per non coprire l'ultimo card col bottone fisso */}
-        <div className="h-16" />
+        <div className="h-24" />
       </div>
 
       {/* Bottone fisso sopra la navbar */}
-      <div className="fixed bottom-[100px] left-0 right-0 px-4 z-40 max-w-lg mx-auto">
-        <button
-          className="w-full py-3 rounded-full text-sm font-bold text-white shadow-lg"
-          style={{ backgroundColor: COLORS.primary }}
-          onClick={() => { resetModal(); setShowInvita(true); }}
-        >
-          + Invita familiare
-        </button>
-      </div>
+      {!isGuest && (
+        <div className="fixed bottom-[124px] left-0 right-0 px-4 z-40 max-w-lg mx-auto">
+          <button
+            className="w-full py-3 rounded-full text-sm font-bold text-white shadow-lg"
+            style={{ backgroundColor: COLORS.primary }}
+            onClick={() => { resetModal(); setShowInvita(true); }}
+          >
+            + Invita familiare
+          </button>
+        </div>
+      )}
 
       {/* Modal invita */}
       <Modal open={showInvita} onClose={() => { setShowInvita(false); resetModal(); }} title="Invita un familiare">

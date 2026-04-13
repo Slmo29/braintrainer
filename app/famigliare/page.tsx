@@ -13,14 +13,39 @@ import {
 } from "@/lib/mock-data";
 
 // ─── Mock dati utente (verrà da Supabase via token) ──────────────────────────
-// TODO: sostituire con query Supabase — SELECT * FROM utenti JOIN inviti WHERE token = ?
+// TODO: sostituire con query Supabase:
+//   SELECT u.nome, u.genere, i.parentela
+//   FROM inviti i JOIN utenti u ON u.id = i.utente_id
+//   WHERE i.token = <token_da_url>
 const MOCK_UTENTE = {
   nome: "Giulia Rossi",
   iniziale: "G",
-  relazione: "Tua madre",
+  parentela: "Figlia", // parentela come impostata dall'utente al momento dell'invito
   streak: 3,
   genere: "F" as "F" | "M", // TODO: da Supabase — utenti.genere
 };
+
+// Mappa parentela (come impostata dall'anziano) + genere dell'anziano → etichetta per il familiare
+const RELAZIONE_LABEL: Record<string, { M: string; F: string }> = {
+  "Figlio":           { M: "Tuo padre",       F: "Tua madre"       },
+  "Figlia":           { M: "Tuo padre",       F: "Tua madre"       },
+  "Nipote":           { M: "Tuo nonno",       F: "Tua nonna"       },
+  "Pronipote":        { M: "Tuo bisnonno",    F: "Tua bisnonna"    },
+  "Fratello":         { M: "Tuo fratello",    F: "Tua sorella"     },
+  "Sorella":          { M: "Tuo fratello",    F: "Tua sorella"     },
+  "Genero":           { M: "Tuo suocero",     F: "Tua suocera"     },
+  "Nuora":            { M: "Tuo suocero",     F: "Tua suocera"     },
+  "Cognato":          { M: "Tuo cognato",     F: "Tua cognata"     },
+  "Cognata":          { M: "Tuo cognato",     F: "Tua cognata"     },
+  "Cugino":           { M: "Tuo cugino",      F: "Tua cugina"      },
+  "Cugina":           { M: "Tuo cugino",      F: "Tua cugina"      },
+  "Badante":          { M: "Il tuo assistito",F: "La tua assistita"},
+  "Amico di famiglia":{ M: "Il tuo amico",    F: "La tua amica"    },
+};
+
+function getRelazione(parentela: string, genere: "M" | "F"): string {
+  return RELAZIONE_LABEL[parentela]?.[genere] ?? parentela;
+}
 
 const TREND_CONFIG = {
   crescita: { label: "↑ In crescita", color: "#16A34A" },
@@ -127,7 +152,10 @@ function CardAndamento() {
                     {cat.categoria}
                   </span>
                 </div>
-                <span className="text-xs font-bold" style={{ color: trend.color }}>
+                <span
+                  className="inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: "#FFFFFF", color: trend.color }}
+                >
                   {trend.label}
                 </span>
               </div>
@@ -384,7 +412,9 @@ function InvitoContent() {
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-lg font-bold" style={{ color: COLORS.inkPrimary }}>{MOCK_UTENTE.nome}</span>
-          <span className="text-sm font-semibold" style={{ color: COLORS.inkMuted }}>{MOCK_UTENTE.relazione}</span>
+          <span className="text-sm font-semibold" style={{ color: COLORS.inkMuted }}>
+            {getRelazione(MOCK_UTENTE.parentela, MOCK_UTENTE.genere)}
+          </span>
         </div>
       </div>
 

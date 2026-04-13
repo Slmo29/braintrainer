@@ -151,7 +151,7 @@ export default function EserciziPage() {
                   </h3>
                   {esercizioDelGiorno.completato && isGuest ? (
                     <Link href="/onboarding/registrati" onClick={(e) => e.stopPropagation()}>
-                      <span className="text-xs font-semibold underline" style={{ color: COLORS.primary }}>
+                      <span className="text-xs font-semibold underline whitespace-nowrap" style={{ color: COLORS.primary, textDecorationColor: COLORS.primary }}>
                         Registrati per sbloccare i risultati
                       </span>
                     </Link>
@@ -171,16 +171,16 @@ export default function EserciziPage() {
                   )}
                 </div>
                 {/* Trailing */}
-                {esercizioDelGiorno.completato ? (
+                {esercizioDelGiorno.completato && !isGuest ? (
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ backgroundColor: COLORS.primaryLight }}
                   >
                     <Check width={16} height={16} strokeWidth={2} color={COLORS.primary} />
                   </div>
-                ) : (
+                ) : !esercizioDelGiorno.completato ? (
                   <span className="text-xl flex-shrink-0" style={{ color: COLORS.inkMuted }}>›</span>
-                )}
+                ) : null}
               </div>
             </button>
           </div>
@@ -226,9 +226,10 @@ export default function EserciziPage() {
                       <span>Livello {esercizio.livello}/6</span>
                     </div>
                     {locked && (
-                      <p className="text-xs font-bold mt-1 underline" style={{ color: COLORS.primary }}>
+                      <span className="inline-flex items-center gap-1 text-xs font-bold mt-1 underline" style={{ color: COLORS.primary, textDecorationColor: COLORS.primary }}>
+                        <Lock width={16} height={16} strokeWidth={1.5} color={COLORS.primary} className="flex-shrink-0" />
                         Registrati per sbloccare
-                      </p>
+                      </span>
                     )}
                   </div>
                   {locked

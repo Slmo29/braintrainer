@@ -9,6 +9,7 @@ create table if not exists users (
   telefono         text unique,
   email            text unique,
   anno_nascita     integer,
+  genere           text check (genere in ('M', 'F')),  -- usato per calcolare etichetta relazione in /famigliare
   orario_notifica  time default '09:00',
   canale_notifica  text default 'whatsapp', -- 'whatsapp' | 'sms' | 'email'
   consenso_notifiche boolean default false,
@@ -109,14 +110,16 @@ create table if not exists inviti (
 
 -- ─── Messaggi familiari ───────────────────────────────────────────────────────
 -- Messaggi di incoraggiamento inviati dai familiari al senior.
+-- Il mittente è un familiare (non un utente full), il destinatario è il senior.
+-- JOIN con familiari per ottenere nome e relazione del mittente.
 create table if not exists messaggi (
-  id             uuid primary key default gen_random_uuid(),
-  mittente_id    uuid references users(id) on delete cascade,  -- il familiare
-  destinatario_id uuid references users(id) on delete cascade, -- il senior
-  testo          text not null,
-  categoria      text,   -- 'incoraggiamento' | 'promemoria' | 'affetto' | 'celebrazione'
-  letto          boolean default false,
-  created_at     timestamptz default now()
+  id              uuid primary key default gen_random_uuid(),
+  familiare_id    uuid references familiari(id) on delete cascade, -- chi invia (il familiare)
+  destinatario_id uuid references users(id) on delete cascade,     -- chi riceve (il senior)
+  testo           text not null,
+  categoria       text,   -- 'Incoraggiamento' | 'Promemoria' | 'Affetto' | 'Celebrazione'
+  letto           boolean default false,
+  created_at      timestamptz default now()
 );
 
 -- ─── RLS — Row Level Security ─────────────────────────────────────────────────
@@ -155,10 +158,10 @@ create policy "Inviti: insert own" on inviti for insert with check (auth.uid() =
 -- lettura pubblica per token (validazione al click del link)
 create policy "Inviti: read by token" on inviti for select using (true);
 
--- messaggi — il senior legge i messaggi ricevuti; il familiare può inserire
-create policy "Messaggi: read own"   on messaggi for select using (auth.uid() = destinatario_id);
-create policy "Messaggi: insert own" on messaggi for insert with check (auth.uid() = mittente_id);
-create policy "Messaggi: mark read"  on messaggi for update using (auth.uid() = destinatario_id);
+-- messaggi — il senior legge i messaggi ricevuti; insert aperto (il familiare non ha auth)
+create policy "Messaggi: read own"  on messaggi for select using (auth.uid() = destinatario_id);
+create policy "Messaggi: insert"    on messaggi for insert with check (true); -- il familiare accede via token, non via auth
+create policy "Messaggi: mark read" on messaggi for update using (auth.uid() = destinatario_id);
 
 -- Accesso pubblico in lettura per dati statici
 create policy "Public read categorie"          on categorie          for select using (true);
