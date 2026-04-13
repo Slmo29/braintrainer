@@ -23,16 +23,16 @@ export default function Modal({ open, onClose, title, children, className }: Mod
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      {/* Overlay — si ferma sopra la navbar */}
+      {/* Overlay */}
       <div
-        className="absolute inset-x-0 top-0 bottom-[96px] bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Sheet */}
       <div
         className={cn(
-          "relative z-10 bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[80vh] overflow-y-auto mb-[96px] sm:mb-0",
+          "relative z-10 bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 pb-36 shadow-2xl max-h-[80vh] overflow-y-auto",
           className
         )}
       >

@@ -50,7 +50,7 @@ export default function BottomNav() {
 
   return (
     /* Floating pill */
-    <nav className="fixed bottom-5 left-4 right-4 z-50 max-w-lg mx-auto">
+    <nav className="fixed bottom-5 left-4 right-4 z-[60] max-w-lg mx-auto">
       <div className="bg-surface rounded-xl shadow-float h-[72px] flex items-center px-2">
         {navItems.map(({ href, label, Icon }) => {
           const active = pathname.startsWith(href);
