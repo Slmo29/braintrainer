@@ -13,7 +13,7 @@ const PUNTI = [
   },
   {
     icona: <Timer width={20} height={20} strokeWidth={1.5} color={COLORS.primary} />,
-    titolo: "Solo 5 minuti al giorno, ogni giorno",
+    titolo: "Solo 10 minuti al giorno, ogni giorno",
   },
   {
     icona: <StatsReport width={20} height={20} strokeWidth={1.5} color={COLORS.primary} />,

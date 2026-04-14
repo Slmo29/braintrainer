@@ -24,7 +24,7 @@ const TABS = [
 export default function EserciziPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { nome, isGuest, eserciziFattiOggi, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio } = useUserStore();
+  const { nome, isGuest, eserciziFattiOggi, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio, setNavNascosta } = useUserStore();
   const categoriaIniziale = TABS.find((t) => t.id === searchParams.get("categoria"))?.id ?? "memoria";
   const [tab, setTab] = useState(categoriaIniziale);
   const tabBarRef = useRef<HTMLDivElement>(null);
@@ -41,6 +41,8 @@ export default function EserciziPage() {
   const livelloUtente = mockScoreCategorie.find((c) => c.categoria.toLowerCase() === tab)?.livello ?? 1;
 
   const esercizioDelGiorno = mockEserciziDelGiornoList.find((e) => e.categoria_id === tab) ?? null;
+  const giornalieriIds = new Set(mockEserciziDelGiornoList.map((e) => e.id));
+  const tuttiGiornalieriCompletati = mockEserciziDelGiornoList.every((e) => e.completato);
 
   const eserciziFiltrati = mockEsercizi
     .filter((e) => e.categoria_id === tab)
@@ -66,7 +68,7 @@ export default function EserciziPage() {
       setMostraConfermaInterruzione(true);
     } else if (eserciziFattiOggi >= LIMITE_ESERCIZI_GIORNO) {
       setEsercizioTarget(id);
-      setMostraPausa(true);
+      setMostraPausa(true); setNavNascosta(true);
     } else {
       router.push(`/esercizi/${id}`);
     }
@@ -197,18 +199,20 @@ export default function EserciziPage() {
         {eserciziFiltrati.map((esercizio) => {
           const cat = mockCategorie.find((c) => c.id === esercizio.categoria_id);
           const cc = cat ? CATEGORIA_COLORS[cat.id] : null;
-          const locked = isLocked(esercizio.livello);
+          const lockedGuest = isLocked(esercizio.livello);
+          const lockedGiornaliero = !isGuest && !giornalieriIds.has(esercizio.id) && !tuttiGiornalieriCompletati;
+          const locked = lockedGuest || lockedGiornaliero;
 
           return (
             <button
               key={esercizio.id}
               className="text-left w-full"
-              onClick={() => handleClickEsercizio(esercizio.id, locked)}
+              onClick={() => !locked && handleClickEsercizio(esercizio.id, lockedGuest)}
             >
               <Card padding="md" className={locked ? "" : "active:scale-[0.98] transition-transform"}>
                 <div className="flex items-center gap-4">
                   <div
-                    className={`w-14 h-14 rounded-md flex items-center justify-center flex-shrink-0 ${locked ? "opacity-50" : ""}`}
+                    className={`w-14 h-14 rounded-md flex items-center justify-center flex-shrink-0 ${locked ? "opacity-40" : ""}`}
                     style={{ backgroundColor: locked ? COLORS.background : (cc?.bg ?? COLORS.surfaceAlt) }}
                   >
                     {locked ? (
@@ -218,22 +222,28 @@ export default function EserciziPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className={`text-base font-bold leading-snug ${locked ? "opacity-50" : ""}`} style={{ color: locked ? COLORS.inkMuted : COLORS.inkPrimary }}>{esercizio.titolo}</h3>
-                    <div className={`flex items-center gap-1 text-xs ${locked ? "opacity-50" : ""}`} style={{ color: COLORS.inkMuted }}>
+                    <h3 className={`text-base font-bold leading-snug ${locked ? "opacity-40" : ""}`} style={{ color: locked ? COLORS.inkMuted : COLORS.inkPrimary }}>{esercizio.titolo}</h3>
+                    <div className={`flex items-center gap-1 text-xs ${locked ? "opacity-40" : ""}`} style={{ color: COLORS.inkMuted }}>
                       <Timer width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} />
                       <span>{Math.ceil((esercizio.durata_stimata ?? 60) / 60)} minuti</span>
                       <span>·</span>
                       <span>Livello {esercizio.livello}/6</span>
                     </div>
-                    {locked && (
+                    {lockedGuest && (
                       <span className="inline-flex items-center gap-1 text-xs font-bold mt-1 underline" style={{ color: COLORS.primary, textDecorationColor: COLORS.primary }}>
                         <Lock width={16} height={16} strokeWidth={1.5} color={COLORS.primary} className="flex-shrink-0" />
                         Registrati per sbloccare
                       </span>
                     )}
+                    {lockedGiornaliero && (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold mt-1" style={{ color: COLORS.inkMuted }}>
+                        <Lock width={12} height={12} strokeWidth={1.5} color={COLORS.inkMuted} className="flex-shrink-0" />
+                        Completa prima gli esercizi del giorno
+                      </span>
+                    )}
                   </div>
                   {locked
-                    ? <Lock width={18} height={18} strokeWidth={1.5} color={COLORS.inkMuted} className="flex-shrink-0 opacity-50" />
+                    ? <Lock width={18} height={18} strokeWidth={1.5} color={COLORS.inkMuted} className="flex-shrink-0 opacity-40" />
                     : <span className="text-ink-muted text-xl flex-shrink-0">›</span>
                   }
                 </div>
@@ -249,15 +259,15 @@ export default function EserciziPage() {
           nome={nome ?? ""}
           isGuest={isGuest}
           onVaiPausa={() => {
-            setMostraPausa(false);
+            setMostraPausa(false); setNavNascosta(false);
             setPausaAttivaRichiesta(true);
             router.push("/home");
           }}
           onContinua={() => {
-            setMostraPausa(false);
+            setMostraPausa(false); setNavNascosta(false);
             if (esercizioTarget) router.push(`/esercizi/${esercizioTarget}`);
           }}
-          onClose={() => setMostraPausa(false)}
+          onClose={() => { setMostraPausa(false); setNavNascosta(false); }}
         />
       )}
 

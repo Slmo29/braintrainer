@@ -5,12 +5,123 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { COLORS, CATEGORIA_COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
+import Card from "@/components/ui/card";
 import {
   mockEserciziDelGiornoList,
   mockScoreCategorie,
-  mockProgressiSettimanali,
   mockMessaggiFamiliari,
+  mockStoricoGiornaliero,
 } from "@/lib/mock-data";
+
+// ── Calendario helpers ────────────────────────────────────────────────────────
+const MESI_IT = [
+  "Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno",
+  "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre",
+];
+
+function buildCalendarCells(year: number, month: number): (number | null)[] {
+  const firstDayItalian = (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: (number | null)[] = Array(firstDayItalian).fill(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  return cells;
+}
+
+function getAllCompletatiDates(): Set<string> {
+  const set = new Set<string>();
+  for (const g of mockStoricoGiornaliero) {
+    if (g.sessioni.length >= 5) set.add(g.data);
+  }
+  return set;
+}
+
+function CalendarioReadOnly({ streak }: { streak: number }) {
+  const [meseOffset, setMeseOffset] = useState(0);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const todayDate = now.getDate();
+
+  const displayDate = new Date(currentYear, currentMonth + meseOffset, 1);
+  const year = displayDate.getFullYear();
+  const month = displayDate.getMonth();
+  const isCurrentMonth = year === currentYear && month === currentMonth;
+
+  const completatiSet = getAllCompletatiDates();
+  const cells = buildCalendarCells(year, month);
+  const HEADER = ["L", "M", "M", "G", "V", "S", "D"];
+
+  return (
+    <Card padding="md">
+      <div className="mb-4">
+        <p className="text-base font-bold text-ink">Storico allenamenti</p>
+        <p className="text-sm font-bold" style={{ color: COLORS.primary }}>{streak} giorni consecutivi</p>
+      </div>
+
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={() => setMeseOffset((o) => o - 1)}
+          className="w-8 h-8 flex items-center justify-center rounded-full text-lg"
+          style={{ color: COLORS.primary }}
+        >
+          ←
+        </button>
+        <span className="text-base font-bold text-ink">
+          {MESI_IT[month]} {year}
+        </span>
+        <button
+          onClick={() => { if (!isCurrentMonth) setMeseOffset((o) => o + 1); }}
+          className="w-8 h-8 flex items-center justify-center rounded-full text-lg"
+          style={{ color: isCurrentMonth ? "#D1D5DB" : COLORS.primary, cursor: isCurrentMonth ? "default" : "pointer" }}
+        >
+          →
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 mb-2">
+        {HEADER.map((g, i) => (
+          <div key={i} className="text-center text-xs font-semibold" style={{ color: COLORS.inkMuted }}>
+            {g}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-y-1">
+        {cells.map((day, i) => {
+          if (day === null) return <div key={i} />;
+
+          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const isFuture = isCurrentMonth && day > todayDate;
+          const completato = completatiSet.has(dateStr);
+
+          let bg: string = "transparent";
+          let border: string = `1.5px solid ${COLORS.primary}`;
+          let color: string = COLORS.primary;
+
+          if (completato) {
+            bg = COLORS.primary;
+            border = "none";
+            color = "#FFFFFF";
+          } else if (isFuture) {
+            border = "none";
+            color = "#D1D5DB";
+          }
+
+          return (
+            <div key={i} className="flex justify-center py-0.5">
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
+                style={{ backgroundColor: bg, border, color }}
+              >
+                {day}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
 
 // ─── Mock dati utente (verrà da Supabase via token) ──────────────────────────
 // TODO: sostituire con query Supabase:
@@ -47,11 +158,6 @@ function getRelazione(parentela: string, genere: "M" | "F"): string {
   return RELAZIONE_LABEL[parentela]?.[genere] ?? parentela;
 }
 
-const TREND_CONFIG = {
-  crescita: { label: "↑ In crescita", color: "#16A34A" },
-  stabile:  { label: "→ Stabile",     color: COLORS.primary },
-  calo:     { label: "↓ In calo",     color: "#DC2626" },
-} as const;
 
 type Periodo = "settimana" | "mese" | "anno";
 
@@ -96,11 +202,6 @@ function CardProgressiGiornata() {
 function CardAndamento() {
   const [periodo, setPeriodo] = useState<Periodo>("settimana");
 
-  // Conteggio esercizi settimana corrente vs scorsa (mock)
-  const eserciziSettimana = mockProgressiSettimanali.reduce((s, g) => s + g.esercizi, 0);
-  const eserciziSettimanaScorsa = 12; // TODO: da Supabase settimana precedente
-  const diff = eserciziSettimana - eserciziSettimanaScorsa;
-
   const PERIODI: { id: Periodo; label: string }[] = [
     { id: "settimana", label: "Settimana" },
     { id: "mese",      label: "Mese" },
@@ -132,7 +233,6 @@ function CardAndamento() {
       <div className="flex flex-col gap-2">
         {mockScoreCategorie.map((cat) => {
           const cc = CATEGORIA_COLORS[cat.categoria.toLowerCase()];
-          const trend = TREND_CONFIG[cat.trend];
           return (
             <div
               key={cat.categoria}
@@ -152,12 +252,6 @@ function CardAndamento() {
                     {cat.categoria}
                   </span>
                 </div>
-                <span
-                  className="inline-flex items-center text-xs font-bold px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: "#FFFFFF", color: trend.color }}
-                >
-                  {trend.label}
-                </span>
               </div>
 
               {/* Barra + % */}
@@ -177,26 +271,8 @@ function CardAndamento() {
         })}
       </div>
 
-      {/* Stat tiles settimane */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-2xl p-4 flex flex-col gap-1" style={{ backgroundColor: COLORS.background }}>
-          <span className="text-xl font-bold" style={{ color: COLORS.inkPrimary }}>{eserciziSettimanaScorsa}</span>
-          <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>Esercizi settimana scorsa</span>
-        </div>
-        <div className="rounded-2xl p-4 flex flex-col gap-1" style={{ backgroundColor: COLORS.background }}>
-          <span className="text-xl font-bold" style={{ color: diff >= 0 ? "#22C55E" : "#DC2626" }}>
-            {eserciziSettimana}
-          </span>
-          <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>
-            Esercizi questa settimana
-          </span>
-          {diff !== 0 && (
-            <span className="text-xs font-semibold" style={{ color: diff >= 0 ? "#22C55E" : "#DC2626" }}>
-              {diff > 0 ? `+ ${diff}` : diff} esercizi
-            </span>
-          )}
-        </div>
-      </div>
+      {/* Calendario storico */}
+      <CalendarioReadOnly streak={MOCK_UTENTE.streak} />
     </div>
   );
 }

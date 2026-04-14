@@ -36,6 +36,8 @@ export interface UserState {
   pausaAttivaRichiesta: boolean;
   // timestamp (ms) di inizio pausa attiva — null = nessuna pausa in corso
   pausaAttivaInizio: number | null;
+  // nasconde la BottomNav (es. quando un modal a schermo intero è aperto)
+  navNascosta: boolean;
 }
 
 interface UserStore extends UserState {
@@ -45,6 +47,7 @@ interface UserStore extends UserState {
   rimuoviFamiliare: (id: string) => void;
   setPausaAttivaRichiesta: (v: boolean) => void;
   setPausaAttivaInizio: (v: number | null) => void;
+  setNavNascosta: (v: boolean) => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -64,6 +67,7 @@ export const useUserStore = create<UserStore>((set) => ({
   eserciziFattiOggi: mockEserciziOggi, // TODO: da Supabase
   pausaAttivaRichiesta: false,
   pausaAttivaInizio: null,
+  navNascosta: false,
 
   // Familiari mock
   familiari: [
@@ -88,6 +92,7 @@ export const useUserStore = create<UserStore>((set) => ({
   setUser: (data) => set((s) => ({ ...s, ...data })),
   setPausaAttivaRichiesta: (v) => set({ pausaAttivaRichiesta: v }),
   setPausaAttivaInizio: (v) => set({ pausaAttivaInizio: v }),
+  setNavNascosta: (v) => set({ navNascosta: v }),
 
   aggiungiMedaglia: (id) =>
     set((s) => ({

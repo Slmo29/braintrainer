@@ -6,7 +6,7 @@ import Link from "next/link";
 import { COLORS } from "@/lib/design-tokens";
 import { mockMessaggiFamiliari } from "@/lib/mock-data";
 import { useUserStore } from "@/lib/store";
-import { ArrowLeft } from "iconoir-react";
+import { ArrowLeft, Check } from "iconoir-react";
 
 // TODO: da Supabase — il campo relazione viene da familiari.relazione (impostato al momento dell'invito)
 // JOIN messaggi m ON m.mittente_id = f.id LEFT JOIN familiari f ON f.utente_id = current_user_id
@@ -38,6 +38,13 @@ export default function MessaggiPage() {
   const router = useRouter();
   const isGuest = useUserStore((s) => s.isGuest);
   const [filtro, setFiltro] = useState<Filtro>("tutti");
+  const [lettiLocali, setLettiLocali] = useState<Set<string>>(
+    () => new Set(mockMessaggiFamiliari.filter((m) => m.letto).map((m) => m.id))
+  );
+
+  function segnaLetto(id: string) {
+    setLettiLocali((prev) => new Set(prev).add(id));
+  }
 
   useEffect(() => {
     if (isGuest) {
@@ -51,8 +58,9 @@ export default function MessaggiPage() {
   }, [isGuest]);
 
   const messaggiFiltrati = mockMessaggiFamiliari.filter((msg) => {
-    if (filtro === "da_leggere") return !msg.letto;
-    if (filtro === "letti") return msg.letto;
+    const letto = lettiLocali.has(msg.id);
+    if (filtro === "da_leggere") return !letto;
+    if (filtro === "letti") return letto;
     return true;
   });
 
@@ -97,13 +105,14 @@ export default function MessaggiPage() {
         {/* Lista messaggi — card separate */}
         <div className="flex-1 flex flex-col gap-3 px-4">
           {messaggiFiltrati.map((msg) => {
+            const letto = lettiLocali.has(msg.id);
             const relStyle = RELAZIONE_STYLE[msg.relazione] ?? { bg: COLORS.primaryLight, text: COLORS.primary };
             return (
               <div
                 key={msg.id}
                 className="rounded-2xl px-4 py-4 flex flex-col gap-1.5"
                 style={{
-                  backgroundColor: !msg.letto ? "#EAF4F8" : COLORS.surface,
+                  backgroundColor: !letto ? "#EAF4F8" : COLORS.surface,
                   border: `1px solid ${COLORS.border}`,
                 }}
               >
@@ -117,9 +126,20 @@ export default function MessaggiPage() {
                   </span>
                   <span className="ml-auto text-xs" style={{ color: COLORS.inkMuted }}>{msg.data}</span>
                 </div>
-                <p className="text-sm" style={{ color: COLORS.inkSecondary }}>
-                  {msg.testo}
-                </p>
+                <div className="flex items-end justify-between gap-2">
+                  <p className="text-sm flex-1" style={{ color: COLORS.inkSecondary }}>
+                    {msg.testo}
+                  </p>
+                  {!letto && (
+                    <button
+                      onClick={() => segnaLetto(msg.id)}
+                      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: "#FFFFFF", border: `1.5px solid ${COLORS.primary}` }}
+                    >
+                      <Check width={14} height={14} strokeWidth={2} color={COLORS.primary} />
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}

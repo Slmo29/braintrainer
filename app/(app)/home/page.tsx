@@ -6,7 +6,7 @@ import Link from "next/link";
 import Card from "@/components/ui/card";
 import Btn from "@/components/ui/btn";
 import { useUserStore } from "@/lib/store";
-import { mockEsercizioDelGiorno, mockEserciziDelGiornoList, mockCategorie, mockProgressiSettimanali, mockSessioniRecenti, mockMessaggiFamiliari } from "@/lib/mock-data";
+import { mockEsercizioDelGiorno, mockEserciziDelGiornoList, mockCategorie, mockProgressiSettimanali, mockSessioniRecenti, mockMessaggiFamiliari, mockEsercizi } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
 import { Timer, Running, Phone, Palette, Leaf, Lock, ChatLines, Check } from "iconoir-react";
@@ -40,7 +40,7 @@ function StreakCircles({ isGuest }: { isGuest?: boolean }) {
       {mockProgressiSettimanali.map((g) => {
         const isOggi = g.giorno === oggi;
         const isFuturo = GIORNO_INDEX[g.giorno] > oggiIndex;
-        const completato = g.esercizi > 0 && !isFuturo;
+        const completato = g.esercizi >= 5 && !isFuturo;
         const d = new Date(monday);
         d.setDate(monday.getDate() + OFFSET_DA_LUNEDI[g.giorno]);
         const dayNumber = d.getDate();
@@ -56,14 +56,15 @@ function StreakCircles({ isGuest }: { isGuest?: boolean }) {
           circleBg = COLORS.primary;
           circleBorder = "none";
           labelColor = isOggi ? COLORS.primary : "#6B7280";
-        } else if (isOggi && !locked) {
-          circleBorder = `2px solid ${COLORS.primary}`;
-          letterColor = COLORS.primary;
-          labelColor = COLORS.primary;
         } else if (isFuturo && !locked) {
           circleBorder = "2px solid #E5E7EB";
           letterColor = "#D1D5DB";
           labelColor = "#D1D5DB";
+        } else if (!locked) {
+          // oggi e giorni passati non completati → stile "giorno corrente"
+          circleBorder = `2px solid ${COLORS.primary}`;
+          letterColor = COLORS.primary;
+          labelColor = COLORS.primary;
         }
 
         return (
@@ -177,11 +178,15 @@ export default function HomePage() {
 
   const completatiOggi = mockEserciziDelGiornoList.filter((e) => e.completato).length;
   const totaleEsercizi = mockEserciziDelGiornoList.length;
+  const eserciziNonCompletati = mockEserciziDelGiornoList.filter(
+    (e) => !e.completato && mockEsercizi.some((m) => m.id === e.id)
+  );
+  const tuttiCompletati = completatiOggi === totaleEsercizi;
 
-  function formatTempo(sec: number) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
+  function iniziaEsercizioRandom() {
+    if (eserciziNonCompletati.length === 0) return;
+    const random = eserciziNonCompletati[Math.floor(Math.random() * eserciziNonCompletati.length)];
+    router.push(`/esercizi/${random.id}`);
   }
 
   return (
@@ -233,17 +238,55 @@ export default function HomePage() {
               <h2 className="text-lg font-bold text-ink mb-3">Esercizi del giorno</h2>
 
               {/* Counter + progress bar */}
-              <div className="rounded-2xl px-4 py-3 mb-2 flex flex-col gap-2" style={{ backgroundColor: "#FFFFFF", boxShadow: "0px 0px 2px rgba(0,0,0,0.12)" }}>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-ink">Completati oggi</span>
-                  <span className="text-sm font-bold" style={{ color: COLORS.primary }}>{completatiOggi}/{totaleEsercizi}</span>
+              <div className="rounded-2xl mb-2 overflow-hidden flex flex-col" style={{ backgroundColor: "#FFFFFF", boxShadow: "0px 0px 2px rgba(0,0,0,0.12)" }}>
+                <div className="px-4 py-3 flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-ink">Completati oggi</span>
+                    <span className="text-sm font-bold" style={{ color: COLORS.primary }}>{completatiOggi}/{totaleEsercizi}</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: `${COLORS.primary}33` }}>
+                    <div className="h-full rounded-full transition-all" style={{ backgroundColor: COLORS.primary, width: `${(completatiOggi / totaleEsercizi) * 100}%` }} />
+                  </div>
+                  {!tuttiCompletati && eserciziNonCompletati.length > 0 && (
+                    <Btn variant="primary" className="w-full mt-1" onClick={iniziaEsercizioRandom}>
+                      Inizia ora
+                    </Btn>
+                  )}
                 </div>
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: `${COLORS.primary}33` }}>
-                  <div className="h-full rounded-full transition-all" style={{ backgroundColor: COLORS.primary, width: `${(completatiOggi / totaleEsercizi) * 100}%` }} />
-                </div>
+                {tuttiCompletati && (
+                  <>
+                    <div style={{ height: 1, backgroundColor: COLORS.border }} />
+                    <div className="px-4 py-3 flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: "#FFE57B" }}>
+                        <span className="text-2xl">🏆</span>
+                      </div>
+                      <span className="text-base font-semibold text-ink">Medaglia guadagnata</span>
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* Lista esercizi */}
+              {/* Pausa attiva card (5/5) o lista esercizi */}
+              {tuttiCompletati ? (
+                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#FFFFFF", boxShadow: "0px 0px 2px rgba(0,0,0,0.12)" }}>
+                  <div className="p-4 flex flex-col gap-6">
+                    <p className="text-base font-bold text-ink">Hai completato i 5 esercizi giornalieri. Ora è arrivato il momento di una pausa attiva</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {ATTIVITA_PAUSA.map(({ label, desc, icon }) => (
+                        <div key={label} className="rounded-xl p-4 flex flex-col items-center text-center gap-3" style={{ backgroundColor: `${COLORS.primary}1A` }}>
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: COLORS.primary }}>
+                            {icon}
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <p className="text-sm font-semibold text-ink">{label}</p>
+                            <p className="text-xs" style={{ color: COLORS.inkMuted }}>{desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
               <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "#FFFFFF", boxShadow: "0px 0px 2px rgba(0,0,0,0.12)" }}>
                 {mockEserciziDelGiornoList.map((esercizio, i) => {
                   const cat = mockCategorie.find((c) => c.id === esercizio.categoria_id);
@@ -256,23 +299,31 @@ export default function HomePage() {
                       className="flex items-center justify-between px-3 py-3"
                       style={{ backgroundColor: isFirstNonCompleted ? `${COLORS.primary}08` : "transparent" }}
                     >
-                      <div className="flex flex-col gap-1.5 flex-1 min-w-0 mr-3">
+                      <div className="flex flex-col gap-2.5 flex-1 min-w-0 mr-3">
                         {/* Category pill */}
                         {cc && cat && (
-                          <span className="self-start text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: cc.bg, color: cc.text }}>
+                          <span className="self-start inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: cc.bg, color: cc.text }}>
+                            <AppIcon name={cat.icona} size={11} color={cc.text} />
                             {cat.nome}
                           </span>
                         )}
                         {/* Name */}
                         <span
-                          className={`text-sm font-semibold leading-snug ${esercizio.completato ? "line-through" : ""}`}
-                          style={{ color: esercizio.completato ? COLORS.inkMuted : COLORS.inkPrimary }}
+                          className="text-sm font-semibold leading-snug"
+                          style={{ color: esercizio.completato ? "#B0B0C4" : COLORS.inkPrimary }}
                         >
                           {esercizio.titolo}
                         </span>
                         {/* Meta */}
-                        <div className="flex items-center gap-1 text-xs font-medium">
-                          {esercizio.completato && isGuest ? (
+                        {!esercizio.completato && (
+                          <div className="flex items-center gap-1 text-xs font-medium">
+                            <span style={{ color: COLORS.inkMuted }}>
+                              {Math.ceil((esercizio.durata_stimata ?? 60) / 60)} minuti · Livello {esercizio.livello}
+                            </span>
+                          </div>
+                        )}
+                        {esercizio.completato && isGuest && (
+                          <div className="flex items-center gap-1 text-xs font-medium">
                             <button
                               className="inline-flex items-center gap-1 text-xs font-semibold underline whitespace-nowrap"
                               style={{ color: COLORS.primary, textDecorationColor: COLORS.primary }}
@@ -281,24 +332,18 @@ export default function HomePage() {
                               <Lock width={16} height={16} strokeWidth={1.5} color={COLORS.primary} className="flex-shrink-0" />
                               Registrati per sbloccare i risultati
                             </button>
-                          ) : esercizio.completato && esercizio.risultato ? (
-                            <span style={{ color: COLORS.inkMuted }}>
-                              {formatTempo(esercizio.risultato.tempo_secondi)} minuti · {esercizio.risultato.accuratezza}% accuratezza
-                            </span>
-                          ) : (
-                            <span style={{ color: COLORS.inkMuted }}>
-                              {Math.ceil((esercizio.durata_stimata ?? 60) / 60)} minuti · Livello {esercizio.livello}
-                            </span>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                       {/* Right icon */}
                       {esercizio.completato && !isGuest ? (
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.primaryLight }}>
-                          <Check width={14} height={14} strokeWidth={2} color={COLORS.primary} />
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.successLight }}>
+                          <Check width={14} height={14} strokeWidth={2} color={COLORS.success} />
                         </div>
                       ) : !esercizio.completato ? (
-                        <span className="text-lg font-bold flex-shrink-0" style={{ color: COLORS.primary }}>›</span>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.primaryLight }}>
+                          <span className="text-base font-bold leading-none" style={{ color: COLORS.primary }}>›</span>
+                        </div>
                       ) : null}
                     </div>
                   );
@@ -311,6 +356,7 @@ export default function HomePage() {
                   );
                 })}
               </div>
+              )}
             </div>
 
 

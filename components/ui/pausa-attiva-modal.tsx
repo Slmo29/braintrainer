@@ -32,7 +32,7 @@ interface PausaAttivaModalProps {
 export function PausaAttivaModal({ nome, isGuest, onVaiPausa, onContinua, onClose }: PausaAttivaModalProps) {
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center px-4 pb-6"
+      className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-6"
       style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
       onClick={onClose}
     >

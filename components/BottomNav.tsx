@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useUserStore } from "@/lib/store";
 
 type IconProps = { active: boolean };
 
@@ -47,6 +48,9 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const navNascosta = useUserStore((s) => s.navNascosta);
+
+  if (navNascosta) return null;
 
   return (
     /* Floating pill */

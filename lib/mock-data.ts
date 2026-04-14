@@ -173,7 +173,7 @@ export const mockEserciziDelGiornoList = [
     categoria_id: "linguaggio",
     livello: 1,
     durata_stimata: 120,
-    completato: false,
+    completato: true,
     risultato: null,
   },
   {
@@ -182,7 +182,7 @@ export const mockEserciziDelGiornoList = [
     categoria_id: "esecutive",
     livello: 1,
     durata_stimata: 120,
-    completato: false,
+    completato: true,
     risultato: null,
   },
   {
@@ -191,7 +191,7 @@ export const mockEserciziDelGiornoList = [
     categoria_id: "visuospaziali",
     livello: 1,
     durata_stimata: 120,
-    completato: false,
+    completato: true,
     risultato: null,
   },
 ] as const;
@@ -200,12 +200,6 @@ export const mockEserciziDelGiornoList = [
 // TODO: sostituire con query Supabase — SELECT count(*) FROM sessioni WHERE utente_id = ? AND data = TODAY()
 // La logica di blocco è: se sessioni_oggi >= LIMITE_ESERCIZI_GIORNO (5) → mostra modale pausa attiva
 export const mockEserciziOggi = mockEserciziDelGiornoList.filter((e) => e.completato).length;
-export const mockEsercizioDelGiornoCompletato = false;
-export const mockEsercizioDelGiornoRisultato = {
-  tempo_secondi: 108,   // 1:48
-  precisione: 92,       // %
-  xp_guadagnati: 25,
-};
 
 // ─── Mock Medaglie ────────────────────────────────────────────────────────────
 export const mockMedaglie = [

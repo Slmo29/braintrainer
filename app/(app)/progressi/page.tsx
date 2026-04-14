@@ -30,7 +30,7 @@ function buildCalendarCells(year: number, month: number): (number | null)[] {
 function getAllCompletatiDates(): Set<string> {
   const set = new Set<string>();
   for (const g of mockStoricoGiornaliero) {
-    if (g.sessioni.length > 0) set.add(g.data);
+    if (g.sessioni.length >= 5) set.add(g.data);
   }
   return set;
 }
@@ -130,20 +130,17 @@ function CalendarioMensile({
           let border = "1.5px solid #D1D5DB";
           let color = "#6B7280";
 
-          if (isSelected) {
-            bg = COLORS.primary;
-            border = "none";
-            color = "#FFFFFF";
-          } else if (isToday) {
-            border = `1.5px solid ${COLORS.primary}`;
-            color = COLORS.primary;
-          } else if (completato) {
+          if (completato && !isSelected) {
             bg = COLORS.primary;
             border = "none";
             color = "#FFFFFF";
           } else if (isFuture) {
             border = "none";
             color = "#D1D5DB";
+          } else {
+            // oggi, selezionato, e giorni passati non completati → stile "giorno corrente"
+            border = `1.5px solid ${COLORS.primary}`;
+            color = COLORS.primary;
           }
 
           return (
