@@ -182,7 +182,7 @@ export const mockEserciziDelGiornoList = [
     categoria_id: "esecutive",
     livello: 1,
     durata_stimata: 120,
-    completato: true,
+    completato: false,
     risultato: null,
   },
   {
@@ -191,7 +191,7 @@ export const mockEserciziDelGiornoList = [
     categoria_id: "visuospaziali",
     livello: 1,
     durata_stimata: 120,
-    completato: true,
+    completato: false,
     risultato: null,
   },
 ] as const;
