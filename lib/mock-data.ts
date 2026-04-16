@@ -370,7 +370,21 @@ export const mockTotaleSettimanaScorsa = 7;
 // TODO: sostituire con dati reali da Supabase (tabella sessioni)
 // Struttura: { data: string (YYYY-MM-DD), sessioni: SessioneStorico[] }
 // SessioneStorico: { nome_esercizio, categoria, icona, livello, score }
+const S5 = [
+  { nome_esercizio: "Ricorda le parole",   categoria: "Memoria",    icona: "brain",  livello: 3, score: 78 },
+  { nome_esercizio: "Trova le differenze", categoria: "Attenzione", icona: "target", livello: 2, score: 65 },
+  { nome_esercizio: "Anagramma",           categoria: "Linguaggio", icona: "chat",   livello: 1, score: 84 },
+  { nome_esercizio: "Torre di Hanoi",      categoria: "Esecutive",  icona: "puzzle", livello: 2, score: 72 },
+  { nome_esercizio: "Rotazione Mentale",   categoria: "Visuospaziali", icona: "eye", livello: 2, score: 69 },
+];
+
 export const mockStoricoGiornaliero = [
+  { data: "2026-04-15", sessioni: S5 },
+  { data: "2026-04-14", sessioni: S5 },
+  { data: "2026-04-13", sessioni: S5 },
+  { data: "2026-04-12", sessioni: S5 },
+  { data: "2026-04-11", sessioni: S5 },
+  { data: "2026-04-10", sessioni: S5 },
   {
     data: "2026-04-09",
     sessioni: [
@@ -380,18 +394,11 @@ export const mockStoricoGiornaliero = [
   },
   {
     data: "2026-04-08",
-    sessioni: [
-      { nome_esercizio: "Sequenza di numeri",  categoria: "Memoria",    icona: "brain",  livello: 3, score: 82 },
-      { nome_esercizio: "Completa la frase",   categoria: "Linguaggio", icona: "chat",   livello: 4, score: 91 },
-    ],
+    sessioni: S5,
   },
   {
     data: "2026-04-07",
-    sessioni: [
-      { nome_esercizio: "Memoria visiva",      categoria: "Memoria",    icona: "brain",  livello: 3, score: 76 },
-      { nome_esercizio: "Trova l'intruso",     categoria: "Attenzione", icona: "target", livello: 2, score: 70 },
-      { nome_esercizio: "Sinonimi veloci",     categoria: "Linguaggio", icona: "chat",   livello: 4, score: 88 },
-    ],
+    sessioni: S5,
   },
   {
     data: "2026-04-06",
@@ -402,10 +409,7 @@ export const mockStoricoGiornaliero = [
   },
   {
     data: "2026-04-03",
-    sessioni: [
-      { nome_esercizio: "Sequenza di numeri",  categoria: "Memoria",    icona: "brain",  livello: 3, score: 74 },
-      { nome_esercizio: "Completa la frase",   categoria: "Linguaggio", icona: "chat",   livello: 4, score: 88 },
-    ],
+    sessioni: S5,
   },
   {
     data: "2026-04-02",
@@ -413,17 +417,11 @@ export const mockStoricoGiornaliero = [
   },
   {
     data: "2026-04-01",
-    sessioni: [
-      { nome_esercizio: "Ricorda le parole",   categoria: "Memoria",    icona: "brain",  livello: 3, score: 70 },
-      { nome_esercizio: "Trova le differenze", categoria: "Attenzione", icona: "target", livello: 2, score: 61 },
-      { nome_esercizio: "Sinonimi veloci",     categoria: "Linguaggio", icona: "chat",   livello: 4, score: 89 },
-    ],
+    sessioni: S5,
   },
   {
     data: "2026-03-31",
-    sessioni: [
-      { nome_esercizio: "Completa la frase",   categoria: "Linguaggio", icona: "chat",   livello: 4, score: 88 },
-    ],
+    sessioni: S5,
   },
   {
     data: "2026-03-30",

@@ -35,6 +35,14 @@ function getAllCompletatiDates(): Set<string> {
   return set;
 }
 
+function getAllAttivitaDates(): Set<string> {
+  const set = new Set<string>();
+  for (const g of mockStoricoGiornaliero) {
+    if (g.sessioni.length > 0) set.add(g.data);
+  }
+  return set;
+}
+
 function buildStreakFromStorico(): number {
   const now = new Date();
   let streak = 0;
@@ -74,6 +82,7 @@ function CalendarioMensile({
   const isCurrentMonth = year === currentYear && month === currentMonth;
 
   const completatiSet = getAllCompletatiDates();
+  const attivitaSet = getAllAttivitaDates();
   const cells = buildCalendarCells(year, month);
   const HEADER = ["L", "M", "M", "G", "V", "S", "D"];
 
@@ -126,21 +135,32 @@ function CalendarioMensile({
           const completato = completatiSet.has(dateStr);
           const isSelected = selectedDate === dateStr;
 
-          let bg = "transparent";
-          let border = "1.5px solid #D1D5DB";
-          let color = "#6B7280";
+          let bg: string = "transparent";
+          let border: string = "1.5px solid #D1D5DB";
+          let color: string = "#6B7280";
+          let boxShadow: string = "none";
 
-          if (completato && !isSelected) {
+          const haAttivita = attivitaSet.has(dateStr);
+
+          if (completato) {
             bg = COLORS.primary;
             border = "none";
             color = "#FFFFFF";
           } else if (isFuture) {
             border = "none";
             color = "#D1D5DB";
-          } else {
-            // oggi, selezionato, e giorni passati non completati → stile "giorno corrente"
+          } else if (isToday || haAttivita) {
+            // oggi oppure giorno con attività parziale (>0 <5) → outline blu
             border = `1.5px solid ${COLORS.primary}`;
             color = COLORS.primary;
+          } else {
+            // giorni passati senza nessuna attività → grigio
+            border = "1.5px solid #D1D5DB";
+            color = "#9CA3AF";
+          }
+
+          if (isSelected) {
+            boxShadow = `0 0 0 3px white, 0 0 0 5px ${COLORS.primary}`;
           }
 
           return (
@@ -149,7 +169,7 @@ function CalendarioMensile({
                 disabled={isFuture}
                 onClick={() => onDaySelect(isSelected ? "" : dateStr)}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold"
-                style={{ backgroundColor: bg, border, color, cursor: isFuture ? "default" : "pointer" }}
+                style={{ backgroundColor: bg, border, color, boxShadow, cursor: isFuture ? "default" : "pointer" }}
               >
                 {day}
               </button>
@@ -157,6 +177,22 @@ function CalendarioMensile({
           );
         })}
       </div>
+      {/* Legenda */}
+      <div className="flex flex-col gap-2 mt-4">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS.primary }} />
+          <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>5 esercizi completati</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ border: `1.5px solid ${COLORS.primary}` }} />
+          <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>Attività parziale</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ border: "1.5px solid #D1D5DB" }} />
+          <span className="text-xs font-semibold" style={{ color: COLORS.inkMuted }}>Nessuna attività</span>
+        </div>
+      </div>
+
       {children && <div className="mt-6">{children}</div>}
     </Card>
   );

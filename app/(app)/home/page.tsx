@@ -147,7 +147,7 @@ function PausaAttivaView({ secondiRimasti }: { secondiRimasti: number }) {
 
 export default function HomePage() {
   const router = useRouter();
-  const { nome, isGuest, eserciziFattiOggi, pausaAttivaRichiesta, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio } = useUserStore();
+  const { nome, isGuest, streak, eserciziFattiOggi, pausaAttivaRichiesta, setPausaAttivaRichiesta, pausaAttivaInizio, setPausaAttivaInizio } = useUserStore();
   const [mostraPausa, setMostraPausa] = useState(false);
   const [secondiRimasti, setSecondiRimasti] = useState(0);
 
@@ -225,6 +225,11 @@ export default function HomePage() {
               </Link>
             )}
           </div>
+          {!isGuest && (
+            <p className="text-sm font-bold mb-2" style={{ color: COLORS.primary }}>
+              {streak > 0 ? `Continua così - ${streak} giorni consecutivi` : "0 giorni consecutivi"}
+            </p>
+          )}
           <StreakCircles isGuest={isGuest} />
         </div>
 
