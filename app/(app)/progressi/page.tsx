@@ -847,7 +847,9 @@ type Tab = "attivita" | "storico" | "medaglie";
 export default function ProgressiPage() {
   const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>((searchParams.get("tab") as Tab) ?? "attivita");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const [selectedDate, setSelectedDate] = useState<string | null>(todayStr);
   const [filtroGuest, setFiltroGuest] = useState<FiltroAttivita>("tutti");
   const { medaglie: medaglieIds, isGuest } = useUserStore();
 

@@ -241,10 +241,7 @@ export default function EserciziPage() {
                       </span>
                     )}
                   </div>
-                  {locked
-                    ? <Lock width={18} height={18} strokeWidth={1.5} color={COLORS.inkMuted} className="flex-shrink-0 opacity-40" />
-                    : <span className="text-ink-muted text-xl flex-shrink-0">›</span>
-                  }
+                  {!locked && <span className="text-ink-muted text-xl flex-shrink-0">›</span>}
                 </div>
               </Card>
             </button>
