@@ -206,16 +206,16 @@ export const mockEserciziOggi = mockEserciziDelGiornoList.filter((e) => e.comple
 // guadagnata_at: valorizzato solo per le medaglie già sbloccate (streak mock = 7)
 export const mockMedaglie = [
   { id: "giorno-1",   nome: "Primo giorno",     giorni: 1,   guadagnata_at: "2026-04-13" },
-  { id: "giorni-2",   nome: "2 giorni attivi",  giorni: 2,   guadagnata_at: "2026-04-14" },
-  { id: "giorni-3",   nome: "3 giorni attivi",  giorni: 3,   guadagnata_at: "2026-04-15" },
-  { id: "giorni-7",   nome: "7 giorni attivi",  giorni: 7,   guadagnata_at: "2026-04-19" },
-  { id: "giorni-10",  nome: "10 giorni attivi", giorni: 10 },
-  { id: "giorni-14",  nome: "14 giorni attivi", giorni: 14 },
-  { id: "giorni-28",  nome: "28 giorni attivi", giorni: 28 },
-  { id: "giorni-50",  nome: "50 giorni attivi", giorni: 50 },
-  { id: "giorni-100", nome: "100 giorni attivi",giorni: 100 },
-  { id: "giorni-200", nome: "200 giorni attivi",giorni: 200 },
-  { id: "giorni-365", nome: "365 giorni attivi",giorni: 365 },
+  { id: "giorni-2",   nome: "2 giorni consecutivi",   giorni: 2,   guadagnata_at: "2026-04-14" },
+  { id: "giorni-3",   nome: "3 giorni consecutivi",   giorni: 3,   guadagnata_at: "2026-04-15" },
+  { id: "giorni-7",   nome: "7 giorni consecutivi",   giorni: 7,   guadagnata_at: "2026-04-19" },
+  { id: "giorni-10",  nome: "10 giorni consecutivi",  giorni: 10 },
+  { id: "giorni-14",  nome: "14 giorni consecutivi",  giorni: 14 },
+  { id: "giorni-28",  nome: "28 giorni consecutivi",  giorni: 28 },
+  { id: "giorni-50",  nome: "50 giorni consecutivi",  giorni: 50 },
+  { id: "giorni-100", nome: "100 giorni consecutivi", giorni: 100 },
+  { id: "giorni-200", nome: "200 giorni consecutivi", giorni: 200 },
+  { id: "giorni-365", nome: "365 giorni consecutivi", giorni: 365 },
 ];
 
 // ─── Mock Progressi ───────────────────────────────────────────────────────────

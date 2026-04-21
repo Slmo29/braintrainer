@@ -861,12 +861,10 @@ function FlameNumerata({ numero, guadagnata, size = 52 }: { numero: number; guad
             </linearGradient>
           )}
         </defs>
-        {/* Corpo fiamma */}
         <path
           d="M26 2C26 2 6 18 6 34C6 46.7 14.9 58 26 58C37.1 58 46 46.7 46 34C46 18 26 2 26 2Z"
           fill={guadagnata ? `url(#${uid})` : "#E5E7EB"}
         />
-        {/* Bagliore interno (solo se guadagnata) */}
         {guadagnata && (
           <path
             d="M26 18C22 24 16 30 16 38C16 44 20.5 50 26 50C31.5 50 36 44 36 38C36 30 30 24 26 18Z"
@@ -1027,7 +1025,6 @@ export default function ProgressiPage() {
               </p>
             </div>
 
-            {/* Sezione "Giorni di Attività" */}
             <p className="text-sm font-bold" style={{ color: COLORS.streak }}>
               Giorni di Attività
             </p>

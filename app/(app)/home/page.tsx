@@ -12,6 +12,38 @@ import { AppIcon } from "@/lib/icons";
 import { Timer, Running, Phone, Palette, Leaf, Lock, ChatLines, Check } from "iconoir-react";
 import { PausaAttivaModal, CheckCircles } from "@/components/ui/pausa-attiva-modal";
 
+function FlameNumerata({ numero, guadagnata, size = 48 }: { numero: number; guadagnata: boolean; size?: number }) {
+  const uid = `hfg-${numero}`;
+  const height = Math.round(size * 1.15);
+  const fontSize = numero >= 100 ? Math.round(size * 0.21) : numero >= 10 ? Math.round(size * 0.26) : Math.round(size * 0.33);
+  return (
+    <div style={{ position: "relative", width: size, height }}>
+      <svg width={size} height={height} viewBox="0 0 52 60" fill="none">
+        <defs>
+          {guadagnata && (
+            <linearGradient id={uid} x1="26" y1="0" x2="26" y2="60" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#FDE68A" />
+              <stop offset="55%" stopColor="#F97316" />
+              <stop offset="100%" stopColor="#DC2626" />
+            </linearGradient>
+          )}
+        </defs>
+        <path d="M26 2C26 2 6 18 6 34C6 46.7 14.9 58 26 58C37.1 58 46 46.7 46 34C46 18 26 2 26 2Z"
+          fill={guadagnata ? `url(#${uid})` : "#E5E7EB"} />
+        {guadagnata && (
+          <path d="M26 18C22 24 16 30 16 38C16 44 20.5 50 26 50C31.5 50 36 44 36 38C36 30 30 24 26 18Z"
+            fill="#FEF3C7" opacity="0.4" />
+        )}
+      </svg>
+      <span style={{
+        position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+        paddingTop: Math.round(size * 0.08), fontSize, fontWeight: 900,
+        color: guadagnata ? "#7C2D12" : "#9CA3AF", lineHeight: 1,
+      }}>{numero}</span>
+    </div>
+  );
+}
+
 const GIORNO_INDEX: Record<string, number> = { Lun: 1, Mar: 2, Mer: 3, Gio: 4, Ven: 5, Sab: 6, Dom: 7 };
 const OFFSET_DA_LUNEDI: Record<string, number> = { Lun: 0, Mar: 1, Mer: 2, Gio: 3, Ven: 4, Sab: 5, Dom: 6 };
 const LIMITE_ESERCIZI_GIORNO = 5;
@@ -231,7 +263,7 @@ export default function HomePage() {
             )}
           </div>
           {!isGuest && (
-            <p className="text-sm font-bold mb-2" style={{ color: COLORS.primary }}>
+            <p className="text-xs font-bold mb-2" style={{ color: COLORS.primary }}>
               {streak > 0 ? `Continua così - ${streak} giorni consecutivi` : "0 giorni consecutivi"}
             </p>
           )}
@@ -267,9 +299,15 @@ export default function HomePage() {
                   <>
                     <div style={{ height: 1, backgroundColor: COLORS.border }} />
                     <div className="px-4 py-3 flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.streakLight }}>
-                        <AppIcon name="flame" size={28} color={COLORS.streak} />
-                      </div>
+                      {medagliaAppenaGuadagnata ? (
+                        <FlameNumerata numero={medagliaAppenaGuadagnata.giorni} guadagnata={true} size={48} />
+                      ) : prossimaMedaglia ? (
+                        <FlameNumerata numero={prossimaMedaglia.giorni} guadagnata={false} size={48} />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.streakLight }}>
+                          <AppIcon name="flame" size={28} color={COLORS.streak} />
+                        </div>
+                      )}
                       {medagliaAppenaGuadagnata ? (
                         <div>
                           <p className="text-xs font-semibold" style={{ color: COLORS.streak }}>Medaglia sbloccata!</p>
@@ -277,10 +315,10 @@ export default function HomePage() {
                         </div>
                       ) : (
                         <div>
-                          <p className="text-base font-bold text-ink">Giorno {streak} attivo!</p>
+                          <p className="text-base font-bold text-ink">{streak} giorni consecutivi!</p>
                           {prossimaMedaglia && giorniMancantiProssima !== null && (
                             <p className="text-xs" style={{ color: COLORS.inkMuted }}>
-                              Ancora {giorniMancantiProssima} {giorniMancantiProssima === 1 ? "giorno" : "giorni"} per &ldquo;{prossimaMedaglia.nome}&rdquo;
+                              Ancora {giorniMancantiProssima} {giorniMancantiProssima === 1 ? "giorno" : "giorni"} per guadagnare la medaglia &ldquo;{prossimaMedaglia.nome}&rdquo;!
                             </p>
                           )}
                         </div>
