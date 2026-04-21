@@ -321,12 +321,12 @@ function SezioneFamiglia() {
     // TODO: sostituire con chiamata Supabase — INSERT INTO inviti_familiari + invio server-side
     const token = Math.random().toString(36).slice(2, 10).toUpperCase();
     const link = `https://braintrainer.app/famigliare?token=${token}`;
-    const messaggio = `Ciao ${draft.nome}! Ti invito a seguire i miei progressi su BrainTrainer e tenermi compagnia nel mio allenamento mentale. Unisciti qui → ${link}`;
+    const messaggio = `Ciao ${draft.nome}! Ti invito a seguire i miei progressi su VivaMente e tenermi compagnia nel mio allenamento mentale. Unisciti qui → ${link}`;
 
     const isEmail = draft.contatto.includes("@");
     if (isEmail) {
       window.open(
-        `mailto:${encodeURIComponent(draft.contatto)}?subject=${encodeURIComponent("Ti invito su BrainTrainer")}&body=${encodeURIComponent(messaggio)}`,
+        `mailto:${encodeURIComponent(draft.contatto)}?subject=${encodeURIComponent("Ti invito su VivaMente")}&body=${encodeURIComponent(messaggio)}`,
         "_blank"
       );
     } else {

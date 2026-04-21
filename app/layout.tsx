@@ -5,18 +5,18 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BrainTrainer",
+  title: "VivaMente",
   description: "Allena la tua mente ogni giorno",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "BrainTrainer",
+    title: "VivaMente",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563EB",
+  themeColor: "#1891B1",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

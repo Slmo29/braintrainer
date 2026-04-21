@@ -15,7 +15,7 @@ No test suite is configured.
 
 ## Architecture Overview
 
-**BrainTrainer** is a Next.js 14 App Router PWA for cognitive training targeted at elderly Italian users, with a caregiver/family monitoring layer. The app is fully in Italian.
+**VivaMente** is a Next.js 14 App Router PWA for cognitive training targeted at elderly Italian users, with a caregiver/family monitoring layer. The app is fully in Italian.
 
 ### Routing Structure
 

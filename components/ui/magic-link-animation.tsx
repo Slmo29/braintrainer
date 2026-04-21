@@ -18,7 +18,7 @@ function channelConfig(canale: MagicLinkCanale) {
       bubbleBg:        "#DCF8C6",
       bubbleBorder:    WHATSAPP_GREEN,
       linkColor:       WHATSAPP_DARK,
-      messagePrefix:   "BrainTrainer:",
+      messagePrefix:   "VivaMente:",
       messageLinkText: "clicca qui per accedere →",
     };
     case "email": return {
@@ -38,7 +38,7 @@ function channelConfig(canale: MagicLinkCanale) {
       bubbleBg:        "#FFFFFF",
       bubbleBorder:    COLORS.primary,
       linkColor:       COLORS.primary,
-      messagePrefix:   "BrainTrainer:",
+      messagePrefix:   "VivaMente:",
       messageLinkText: "clicca qui per accedere →",
     };
   }

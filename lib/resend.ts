@@ -12,7 +12,7 @@ export async function sendEmail({
   html: string;
 }) {
   return resend.emails.send({
-    from: "BrainTrainer <noreply@braintrainer.app>",
+    from: "VivaMente <noreply@braintrainer.app>",
     to,
     subject,
     html,

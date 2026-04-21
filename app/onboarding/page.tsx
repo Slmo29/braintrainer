@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import Btn from "@/components/ui/btn";
 import { COLORS } from "@/lib/design-tokens";
-import { Brain, Timer, StatsReport, Medal } from "iconoir-react";
+import { Timer, StatsReport, Medal, Brain } from "iconoir-react";
 import StepLines from "@/components/ui/step-lines";
 
 const PUNTI = [
@@ -35,10 +36,10 @@ export default function OnboardingPage() {
 
       {/* Contenuto scrollabile */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center w-full gap-6 min-h-0">
-        <Brain width={80} height={80} strokeWidth={1.5} color={COLORS.primary} />
+        <Image src="/logo.svg" alt="VivaMente" width={67} height={80} />
 
         <div className="text-center">
-          <h1 className="text-2xl font-extrabold text-ink">BrainTrainer</h1>
+          <h1 className="text-2xl font-extrabold text-ink">VivaMente</h1>
           <p className="text-base text-ink-secondary mt-2 leading-relaxed">
             Allena la mente ogni giorno con esercizi semplici e divertenti
           </p>

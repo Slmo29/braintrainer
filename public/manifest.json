@@ -1,11 +1,11 @@
 {
-  "name": "BrainTrainer",
-  "short_name": "BrainTrainer",
+  "name": "VivaMente",
+  "short_name": "VivaMente",
   "description": "Allena la tua mente ogni giorno",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8FAFC",
-  "theme_color": "#2563EB",
+  "theme_color": "#1891B1",
   "orientation": "portrait",
   "icons": [
     {
