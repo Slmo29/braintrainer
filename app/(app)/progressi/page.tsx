@@ -1029,7 +1029,7 @@ export default function ProgressiPage() {
               Giorni di Attività
             </p>
 
-            <div className="grid grid-cols-3 gap-3 pb-4">
+            <div className="grid grid-cols-2 gap-3 pb-4">
               {mockMedaglie.map((medaglia) => {
                 const guadagnata = streak >= medaglia.giorni;
                 const rimanenti = medaglia.giorni - streak;
@@ -1037,7 +1037,7 @@ export default function ProgressiPage() {
                 return (
                   <div
                     key={medaglia.id}
-                    className="flex flex-col items-center gap-1.5 rounded-2xl py-4 px-2"
+                    className="flex flex-col items-center justify-center gap-1.5 rounded-2xl py-4 px-2 h-36"
                     style={{
                       backgroundColor: guadagnata ? COLORS.streakLight : "#F9FAFB",
                       border: guadagnata ? `1.5px solid ${COLORS.streak}44` : "1.5px solid #E5E7EB",
@@ -1050,18 +1050,20 @@ export default function ProgressiPage() {
                     >
                       {medaglia.nome}
                     </p>
-                    {guadagnata && medaglia.guadagnata_at ? (
-                      <div className="flex items-center gap-1">
-                        <Calendar width={10} height={10} strokeWidth={1.5} color={COLORS.gold} />
-                        <p className="text-xs font-semibold" style={{ color: COLORS.gold }}>
-                          {new Date(medaglia.guadagnata_at).toLocaleDateString("it-IT", { day: "numeric", month: "short" })}
+                    <div className="h-5 flex items-center justify-center">
+                      {guadagnata && medaglia.guadagnata_at ? (
+                        <div className="flex items-center gap-1">
+                          <Calendar width={10} height={10} strokeWidth={1.5} color={COLORS.gold} />
+                          <p className="text-xs font-semibold" style={{ color: COLORS.gold }}>
+                            {new Date(medaglia.guadagnata_at).toLocaleDateString("it-IT", { day: "numeric", month: "short" })}
+                          </p>
+                        </div>
+                      ) : !guadagnata ? (
+                        <p className="text-xs text-center leading-tight" style={{ color: COLORS.inkMuted }}>
+                          ancora {rimanenti} {rimanenti === 1 ? "giorno" : "giorni"}
                         </p>
-                      </div>
-                    ) : !guadagnata ? (
-                      <p className="text-xs text-center leading-tight" style={{ color: COLORS.inkMuted }}>
-                        ancora {rimanenti} {rimanenti === 1 ? "giorno" : "giorni"}
-                      </p>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
                 );
               })}

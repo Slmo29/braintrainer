@@ -9,6 +9,8 @@ import MemoriaParole from "@/components/esercizi/MemoriaParole";
 import StroopTest from "@/components/esercizi/StroopTest";
 import { mockEsercizi, mockCategorie } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS, DIFFICOLTA_STYLE } from "@/lib/design-tokens";
+import { useUserStore } from "@/lib/store";
+import { salvaSessione, aggiornaStreak, controllaNuoveMedaglie } from "@/lib/sync";
 
 type Stato = "intro" | "esercizio" | "risultato";
 
@@ -17,6 +19,7 @@ export default function EsercizioPage() {
   const router = useRouter();
   const [stato, setStato] = useState<Stato>("intro");
   const [score, setScore] = useState(0);
+  const { userId, streak, lastActivityDate, medaglie, eserciziFattiOggi, setUser, aggiungiMedaglia } = useUserStore();
 
   const esercizio = mockEsercizi.find((e) => e.id === params.id);
   const categoria = mockCategorie.find((c) => c.id === esercizio?.categoria_id);
@@ -33,7 +36,30 @@ export default function EsercizioPage() {
     );
   }
 
-  function handleComplete(punteggio: number) { setScore(punteggio); setStato("risultato"); }
+  async function handleComplete(punteggio: number) {
+    setScore(punteggio);
+    setStato("risultato");
+
+    if (!userId || !esercizio) return;
+
+    await salvaSessione({
+      userId,
+      esercizioId: esercizio.id,
+      categoriaId: esercizio.categoria_id ?? null,
+      score: punteggio,
+    });
+
+    const nuovoStreak = await aggiornaStreak(userId, streak, lastActivityDate);
+    const oggi = new Date().toISOString().split("T")[0];
+    const nuoveMedaglie = await controllaNuoveMedaglie(userId, nuovoStreak, medaglie);
+
+    setUser({
+      streak: nuovoStreak,
+      lastActivityDate: oggi,
+      eserciziFattiOggi: eserciziFattiOggi + 1,
+    });
+    nuoveMedaglie.forEach((id) => aggiungiMedaglia(id));
+  }
 
   const scoreColor = score >= 80 ? COLORS.success : score >= 50 ? COLORS.streak : "#C62828";
   const scoreMsg = score === 100 ? "Perfetto!" : score >= 80 ? "Ottimo lavoro!" : score >= 60 ? "Ottimo!" : "Continua ad allenarti!";

@@ -8,7 +8,7 @@ export interface Familiare {
   nome: string;
   relazione: string;
   telefono: string;
-  collegato_da: string;
+  collegato_at: string;
   permessi: {
     attivita: boolean;
     medaglie: boolean;
@@ -18,6 +18,7 @@ export interface Familiare {
 
 export interface UserState {
   isGuest: boolean;
+  userId: string | null;
   nome: string;
   cognome: string;
   telefono: string;
@@ -28,9 +29,9 @@ export interface UserState {
   consenso_notifiche: boolean;
   medaglie: string[];
   streak: number;
+  lastActivityDate: string | null;
   esercizi_completati: number;
   familiari: Familiare[];
-  // TODO: da Supabase — conteggio esercizi completati oggi per l'utente corrente
   eserciziFattiOggi: number;
   // flag cross-page: impostato da /esercizi per far aprire PausaAttivaView in /home
   pausaAttivaRichiesta: boolean;
@@ -53,6 +54,7 @@ interface UserStore extends UserState {
 export const useUserStore = create<UserStore>((set) => ({
   // Dati utente di default
   isGuest: false,
+  userId: null,
   nome: "Mario",
   cognome: "",
   telefono: "+39 333 1234567",
@@ -63,6 +65,7 @@ export const useUserStore = create<UserStore>((set) => ({
   consenso_notifiche: true,
   medaglie: ["giorno-1", "giorni-2", "giorni-3", "giorni-7"],
   streak: 8,
+  lastActivityDate: null,
   esercizi_completati: 12,
   eserciziFattiOggi: mockEserciziOggi, // TODO: da Supabase
   pausaAttivaRichiesta: false,
@@ -76,7 +79,7 @@ export const useUserStore = create<UserStore>((set) => ({
       nome: "Sara",
       relazione: "Figlia",
       telefono: "+39 333 9876543",
-      collegato_da: "15 giorni fa",
+      collegato_at: new Date(Date.now() - 15 * 86_400_000).toISOString(),
       permessi: { attivita: true, medaglie: true, progressi: true },
     },
     {
@@ -84,7 +87,7 @@ export const useUserStore = create<UserStore>((set) => ({
       nome: "Luca",
       relazione: "Nipote",
       telefono: "+39 347 1234567",
-      collegato_da: "3 giorni fa",
+      collegato_at: new Date(Date.now() - 3 * 86_400_000).toISOString(),
       permessi: { attivita: true, medaglie: true, progressi: false },
     },
   ],

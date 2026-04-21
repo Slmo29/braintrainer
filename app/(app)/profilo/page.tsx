@@ -8,6 +8,7 @@ import Toggle from "@/components/ui/toggle";
 import Modal from "@/components/ui/modal";
 import AppSelect from "@/components/ui/app-select";
 import { useUserStore, type CanalNotifica, type Familiare } from "@/lib/store";
+import { giorniDa } from "@/lib/utils";
 import { COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
 import {
@@ -337,7 +338,7 @@ function SezioneFamiglia() {
       nome: draft.nome,
       relazione: draft.parentela,
       telefono: isEmail ? "" : draft.contatto,
-      collegato_da: "0 giorni",
+      collegato_at: new Date().toISOString(),
       permessi: { attivita: true, medaglie: true, progressi: true },
     };
     setUser({ familiari: [...familiari, nuovoFamiliare] });
@@ -471,7 +472,7 @@ function FamiliareCard({ familiare, onRimuovi }: {
   onRimuovi: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const collegato = familiare.collegato_da.replace(" fa", "");
+  const collegato = giorniDa(familiare.collegato_at);
 
   const INFO_ROWS = [
     { icon: <User width={15} height={15} strokeWidth={1.5} color={COLORS.inkMuted} />, label: "Nome",      value: familiare.nome },
