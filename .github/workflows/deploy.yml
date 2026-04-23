@@ -74,7 +74,7 @@ jobs:
             npm ci --omit=dev
             pm2 describe braintrainer > /dev/null 2>&1 \
               && pm2 restart braintrainer --update-env \
-              || pm2 start npm --name braintrainer -- start
+              || pm2 start npm --name braintrainer --cwd $APP_DIR -- start
             pm2 save
         env:
           APP_DIR: ${{ secrets.APP_DIR }}
