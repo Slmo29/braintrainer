@@ -975,7 +975,7 @@ function ProgressiPageContent() {
         </div>
       )}
 
-      <div className="relative flex flex-col gap-4 px-4 pt-4 flex-1">
+      <div className="relative flex flex-col gap-4 px-4 pt-4 flex-1" style={isGuest ? { overflow: "hidden" } : undefined}>
         {/* ── Tab: Attività ────────────────────────────────────────── */}
         {tab === "attivita" && (
           isGuest
