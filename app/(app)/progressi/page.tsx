@@ -808,7 +808,7 @@ function AttivitaTab({ filtro: filtroExt, setFiltro: setFiltroExt, hidePills, sc
               <p className="text-xs mt-0.5" style={{ color: COLORS.inkMuted }}>Sessioni totali</p>
             </div>
           </>
-        ) : (() => {
+        ) : filteredCats.length === 0 ? null : (() => {
           const cat = filteredCats[0];
           const trendArrow = { crescita: "↑", stabile: "→", calo: "↓" }[cat.trend];
           return (
