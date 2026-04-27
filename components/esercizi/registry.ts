@@ -1,74 +1,95 @@
 import type { ComponentType } from "react";
 import type { GameEngineProps } from "@/lib/exercise-types";
 import { FlankerTaskEngine } from "./families/flanker-task/FlankerTaskEngine";
+import { getFlankerLevel } from "./families/flanker-task/levels";
 
 /**
- * Mappa esercizio_id → ComponentType<GameEngineProps>.
+ * Entry del registry per una famiglia di esercizi.
+ * Contiene il componente engine e i metadati che page.tsx ha bisogno
+ * per orchestrare la sessione (durata timer per Modello A, ecc.).
+ */
+export interface FamilyEntry {
+  Engine: ComponentType<GameEngineProps>;
+
+  /**
+   * Durata di sessione in ms per il Modello A (timer-based).
+   * Famiglie Modello B (trial-based) restituiscono null e page.tsx non
+   * avvia il timer — la sessione termina via trialValutativi raggiunti.
+   */
+  getSessionDurationMs(livello: number): number | null;
+}
+
+/**
+ * Mappa esercizio_id → FamilyEntry.
  *
- * Chiave: id JSON dell'esercizio (corrisponde a esercizi.id nel DB e al
+ * Chiave: id dell'esercizio (corrisponde a esercizi.id nel DB e al
  * parametro [id] nella URL di page.tsx).
  *
  * Famiglie multi-esercizio (es. Sequence Tap, Recall Grid) mappano più
- * chiavi allo stesso ComponentType. Il game engine riceverà in futuro
- * esercizioId: string in GameEngineProps per discriminare la variante.
+ * chiavi alla stessa FamilyEntry. Il game engine riceverà esercizioId in
+ * GameEngineProps per discriminare la variante interna.
  *
- * Per aggiungere una nuova famiglia: importare il suo Engine e aggiungere
- * le entry corrispondenti agli id JSON di docs/gdd/shared/07-catalog.md.
+ * Per aggiungere una nuova famiglia: importare il suo Engine, definire
+ * getSessionDurationMs (null per Modello B), aggiungere le entry per
+ * tutti gli id JSON in docs/gdd/shared/07-catalog.md.
  */
-export const ENGINE_REGISTRY: Record<string, ComponentType<GameEngineProps>> = {
+export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
 
-  // ── Famiglia 17: Flanker Task ─────────────────────────────────────────────
-  flanker_frecce: FlankerTaskEngine,
+  // ── Famiglia 17: Flanker Task (Modello A — timer-based) ──────────────────
+  flanker_frecce: {
+    Engine: FlankerTaskEngine,
+    getSessionDurationMs: (livello) => getFlankerLevel(livello).sessionDurationMs,
+  },
 
   // ── Da aggiungere progressivamente (una entry per id JSON del catalogo) ──
-  // sequence_tap_numeri_forward:           SequenceTapEngine,
-  // sequence_tap_numeri_backward:          SequenceTapEngine,
-  // sequence_tap_parole_forward:           SequenceTapEngine,
-  // sequence_tap_parole_backward:          SequenceTapEngine,
-  // recall_grid_parole_mbt:                RecallGridEngine,
-  // recall_grid_immagini_mbt:              RecallGridEngine,
-  // recall_grid_immagini_mlt:              RecallGridEngine,
-  // odd_one_out_numeri_lettere:            OddOneOutEngine,
-  // odd_one_out_parole_miste:              OddOneOutEngine,
-  // sort_it_percettivo:                    SortItEngine,
-  // sort_it_semantico:                     SortItEngine,
-  // hayling_ab:                            HaylingGameEngine,
-  // hayling_b_only:                        HaylingGameEngine,
-  // pasat_light_visivo:                    PasatLightEngine,
-  // updating_wm_parole:                    UpdatingWmEngine,
-  // updating_wm_immagini:                  UpdatingWmEngine,
-  // updating_wm_numeri:                    UpdatingWmEngine,
-  // memoria_comprensione_fattuale_mbt:     MemoriaComprensioneTestoEngine,
-  // memoria_comprensione_inferenziale_mbt: MemoriaComprensioneTestoEngine,
-  // memoria_comprensione_ordine_narrativo: MemoriaComprensioneTestoEngine,
-  // memoria_comprensione_fattuale_mlt:     MemoriaComprensioneTestoEngine,
-  // memoria_lista_parole_rievocazione:     MemoriaListaEngine,
-  // memoria_lista_immagini_rievocazione:   MemoriaListaEngine,
-  // memoria_lista_parole_riconoscimento:   MemoriaListaEngine,
-  // memoria_lista_immagini_riconoscimento: MemoriaListaEngine,
-  // sart_numerico:                         SartEngine,
-  // go_nogo_cromatico:                     GoNoGoEngine,
-  // go_nogo_semantico:                     GoNoGoEngine,
-  // stroop_classico:                       StroopEngine,
-  // picture_naming:                        LinguaggioDenominazioneEngine,
-  // synonym_antonym_decision:              LinguaggioDenominazioneEngine,
-  // path_tracing:                          PathTracingEngine,      // MazeSession
-  // cultura_generale:                      ConoscenzaGeneraleEngine,
-  // word_chain_alfabetico:                 WordChainEngine,        // WordChainSession
-  // word_chain_switching_categoriale:      WordChainSwitchingEngine, // WordChainSession
-  // associative_memory:                    AssociativeMemoryEngine,
-  // verbal_fluency_semantica:              VerbalFluencyEngine,    // FluencySession
-  // verbal_fluency_fonemica:               VerbalFluencyEngine,    // FluencySession
-  // memoria_prospettica_event_based:       MemoriaProspetticaEngine, // ProspectiveMemorySession
-  // memoria_prospettica_time_based:        MemoriaProspetticaEngine, // ProspectiveMemorySession
+  // sequence_tap_numeri_forward:           { Engine: SequenceTapEngine,           getSessionDurationMs: () => null },
+  // sequence_tap_numeri_backward:          { Engine: SequenceTapEngine,           getSessionDurationMs: () => null },
+  // sequence_tap_parole_forward:           { Engine: SequenceTapEngine,           getSessionDurationMs: () => null },
+  // sequence_tap_parole_backward:          { Engine: SequenceTapEngine,           getSessionDurationMs: () => null },
+  // recall_grid_parole_mbt:                { Engine: RecallGridEngine,            getSessionDurationMs: () => null },
+  // recall_grid_immagini_mbt:              { Engine: RecallGridEngine,            getSessionDurationMs: () => null },
+  // recall_grid_immagini_mlt:              { Engine: RecallGridEngine,            getSessionDurationMs: () => null },
+  // odd_one_out_numeri_lettere:            { Engine: OddOneOutEngine,             getSessionDurationMs: () => null },
+  // odd_one_out_parole_miste:              { Engine: OddOneOutEngine,             getSessionDurationMs: () => null },
+  // sort_it_percettivo:                    { Engine: SortItEngine,                getSessionDurationMs: () => null },
+  // sort_it_semantico:                     { Engine: SortItEngine,                getSessionDurationMs: () => null },
+  // hayling_ab:                            { Engine: HaylingGameEngine,           getSessionDurationMs: () => null },
+  // hayling_b_only:                        { Engine: HaylingGameEngine,           getSessionDurationMs: () => null },
+  // pasat_light_visivo:                    { Engine: PasatLightEngine,            getSessionDurationMs: (l) => getPasatLevel(l).sessionDurationMs },
+  // updating_wm_parole:                    { Engine: UpdatingWmEngine,            getSessionDurationMs: () => null },
+  // updating_wm_immagini:                  { Engine: UpdatingWmEngine,            getSessionDurationMs: () => null },
+  // updating_wm_numeri:                    { Engine: UpdatingWmEngine,            getSessionDurationMs: () => null },
+  // memoria_comprensione_fattuale_mbt:     { Engine: MemoriaComprensioneTestoEngine, getSessionDurationMs: () => null },
+  // memoria_comprensione_inferenziale_mbt: { Engine: MemoriaComprensioneTestoEngine, getSessionDurationMs: () => null },
+  // memoria_comprensione_ordine_narrativo: { Engine: MemoriaComprensioneTestoEngine, getSessionDurationMs: () => null },
+  // memoria_comprensione_fattuale_mlt:     { Engine: MemoriaComprensioneTestoEngine, getSessionDurationMs: () => null },
+  // memoria_lista_parole_rievocazione:     { Engine: MemoriaListaEngine,          getSessionDurationMs: () => null },
+  // memoria_lista_immagini_rievocazione:   { Engine: MemoriaListaEngine,          getSessionDurationMs: () => null },
+  // memoria_lista_parole_riconoscimento:   { Engine: MemoriaListaEngine,          getSessionDurationMs: () => null },
+  // memoria_lista_immagini_riconoscimento: { Engine: MemoriaListaEngine,          getSessionDurationMs: () => null },
+  // sart_numerico:                         { Engine: SartEngine,                  getSessionDurationMs: (l) => getSartLevel(l).sessionDurationMs },
+  // go_nogo_cromatico:                     { Engine: GoNoGoEngine,                getSessionDurationMs: (l) => getGoNoGoLevel(l).sessionDurationMs },
+  // go_nogo_semantico:                     { Engine: GoNoGoEngine,                getSessionDurationMs: (l) => getGoNoGoLevel(l).sessionDurationMs },
+  // stroop_classico:                       { Engine: StroopEngine,                getSessionDurationMs: (l) => getStroopLevel(l).sessionDurationMs },
+  // picture_naming:                        { Engine: LinguaggioDenominazioneEngine, getSessionDurationMs: () => null },
+  // synonym_antonym_decision:              { Engine: LinguaggioDenominazioneEngine, getSessionDurationMs: () => null },
+  // path_tracing:                          { Engine: PathTracingEngine,           getSessionDurationMs: () => null },
+  // cultura_generale:                      { Engine: ConoscenzaGeneraleEngine,    getSessionDurationMs: () => null },
+  // word_chain_alfabetico:                 { Engine: WordChainEngine,             getSessionDurationMs: () => null },
+  // word_chain_switching_categoriale:      { Engine: WordChainSwitchingEngine,    getSessionDurationMs: () => null },
+  // associative_memory:                    { Engine: AssociativeMemoryEngine,     getSessionDurationMs: () => null },
+  // verbal_fluency_semantica:              { Engine: VerbalFluencyEngine,         getSessionDurationMs: () => null },
+  // verbal_fluency_fonemica:               { Engine: VerbalFluencyEngine,         getSessionDurationMs: () => null },
+  // memoria_prospettica_event_based:       { Engine: MemoriaProspetticaEngine,    getSessionDurationMs: () => null },
+  // memoria_prospettica_time_based:        { Engine: MemoriaProspetticaEngine,    getSessionDurationMs: () => null },
 };
 
 /**
- * Ritorna il ComponentType corrispondente all'esercizio, oppure null se
- * l'id non è registrato (esercizio non ancora implementato o URL non valida).
+ * Ritorna la FamilyEntry corrispondente, oppure null se l'id non è
+ * registrato (esercizio non ancora implementato o URL non valida).
  * Page.tsx gestisce il null mostrando un messaggio user-friendly senza
  * esporre dettagli tecnici all'utente.
  */
-export function getEngine(esercizioId: string): ComponentType<GameEngineProps> | null {
+export function getFamily(esercizioId: string): FamilyEntry | null {
   return ENGINE_REGISTRY[esercizioId] ?? null;
 }

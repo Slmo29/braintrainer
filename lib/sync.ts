@@ -164,19 +164,51 @@ export async function initUserData(userId: string) {
 // ─── Sessioni ─────────────────────────────────────────────────────────────────
 
 export async function salvaSessione({
-  userId, esercizioId, categoriaId, score,
+  userId, esercizioId, categoriaId, score, livello, accuratezzaValutativa, durata, metriche,
 }: {
-  userId: string; esercizioId: string; categoriaId: string | null; score: number;
+  userId: string;
+  esercizioId: string;
+  categoriaId: string | null;
+  score: number;
+  livello: number;
+  accuratezzaValutativa: number;
+  durata: number;
+  metriche: Record<string, number> | null;
 }) {
   const supabase = createClient();
   await supabase.from("sessioni").insert({
     user_id: userId,
     esercizio_id: esercizioId,
     categoria_id: categoriaId,
-    score,
-    accuratezza: score,
+    score: Math.round(score),
+    accuratezza: Math.round(accuratezzaValutativa * 100),
+    durata: Math.round(durata),
+    livello,
+    metriche: metriche ?? null,
     completato: true,
   });
+}
+
+/**
+ * Restituisce il livello dell'ultima sessione completata dall'utente per
+ * questo esercizio. null = nessuna sessione precedente OR sessioni storiche
+ * pre-migration con livello NULL (clinicamente: trattate come "primo accesso").
+ */
+export async function fetchUltimoLivelloEsercizio(
+  userId: string,
+  esercizioId: string,
+): Promise<number | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("sessioni")
+    .select("livello")
+    .eq("user_id", userId)
+    .eq("esercizio_id", esercizioId)
+    .not("livello", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  return (data && data.length > 0) ? (data[0].livello as number) : null;
 }
 
 // ─── Streak e medaglie ────────────────────────────────────────────────────────
@@ -723,4 +755,53 @@ export async function inviaMessaggioFamiliare(token: string, testo: string, cate
   });
   if (error || !data?.success) return false;
   return true;
+}
+
+// ─── Helpers per page.tsx (mount iniziale) ────────────────────────────────────
+
+/**
+ * Restituisce i dati dell'esercizio dato il suo id, oppure null se non
+ * esiste o è inattivo. Page.tsx chiama questa al mount per validare
+ * l'URL parameter [id] e ottenere nome + categoria_id.
+ */
+export async function fetchEsercizioById(
+  esercizioId: string,
+): Promise<{ id: string; nome: string; categoria_id: string } | null> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("esercizi")
+    .select("id, nome, categoria_id")
+    .eq("id", esercizioId)
+    .eq("attivo", true)
+    .limit(1)
+    .single();
+
+  if (!data) return null;
+  return {
+    id: data.id as string,
+    nome: data.nome as string,
+    categoria_id: data.categoria_id as string,
+  };
+}
+
+/**
+ * Conta le sessioni completate dall'utente per questo esercizio.
+ * Usata da page.tsx per calcolare mostraTutorial = (count === 0).
+ * Include anche sessioni storiche pre-migration (livello NULL):
+ * se l'utente ha già visto l'esercizio sotto qualsiasi schema, non
+ * mostriamo il tutorial.
+ */
+export async function contaSessioniPerEsercizio(
+  userId: string,
+  esercizioId: string,
+): Promise<number> {
+  const supabase = createClient();
+  const { count } = await supabase
+    .from("sessioni")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("esercizio_id", esercizioId)
+    .eq("completato", true);
+
+  return count ?? 0;
 }
