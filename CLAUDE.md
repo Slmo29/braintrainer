@@ -125,6 +125,12 @@ Quando i nuovi componenti saranno implementati, il game engine riceve `livello`,
 - `lib/twilio.ts` — WhatsApp + SMS via Twilio (family notifications)
 - `lib/resend.ts` — Email via Resend (magic links, invites)
 
+## Specifiche esercizi (GDD)
+
+Per qualsiasi lavoro su game engine, logica adattiva (`user_levels`),
+rotazione `esercizi_del_giorno`, o contenuto degli esercizi: leggere
+prima `docs/gdd/CLAUDE.md`.
+
 ## Environment Variables
 
 Required in `.env.local`:
