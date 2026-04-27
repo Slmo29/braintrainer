@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cap, maxFeasibleI, generaPool } from "@/components/esercizi/families/flanker-task/sequence";
+import { cap, generaPool } from "@/components/esercizi/families/flanker-task/sequence";
 import type { FlankerStimolo } from "@/components/esercizi/families/flanker-task/levels";
 
 // ── RNG deterministico (mulberry32) ───────────────────────────────────────────
@@ -63,8 +63,6 @@ describe("cap(N, tail)", () => {
 // ── T7–T11: generaPool() count e vincoli ─────────────────────────────────────
 
 describe("generaPool() — conteggio I e vincolo max-2-consecutivi", () => {
-
-  const rng = mulberry32(0xDEADBEEF);
 
   it("T7 — chunk 20, ratio 0.70, tail 0 → esattamente 14 I, 0 triplette", () => {
     const pool = generaPool(20, 0.70, 4, 0, mulberry32(1));
