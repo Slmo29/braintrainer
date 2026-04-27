@@ -217,10 +217,8 @@ export default function HomePage() {
     ? eserciziDelGiorno
     : mockCategorie.map((cat) => ({
         id: cat.id,
-        titolo: cat.nome,
+        nome: cat.nome,
         categoria_id: cat.id,
-        livello: 1,
-        durata_stimata: 60,
         completato: false,
         risultato: null,
       }));
@@ -389,7 +387,7 @@ export default function HomePage() {
                           className="text-sm font-semibold leading-snug"
                           style={{ color: esercizio.completato ? "#B0B0C4" : COLORS.inkPrimary }}
                         >
-                          {esercizio.titolo}
+                          {esercizio.nome}
                         </span>
                         {esercizio.completato && isGuest && (
                           <div className="flex items-center gap-1 text-xs font-medium">

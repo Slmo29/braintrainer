@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { calcolaProgressione, type UserLevelStato, type EventoProgressione } from "@/lib/progression";
 
 // ─── Tipi esportati ───────────────────────────────────────────────────────────
 
@@ -33,11 +34,9 @@ export interface MessaggioReale {
 }
 
 export interface EserciziDelGiornoItem {
-  id: string;
-  titolo: string;
+  id: string;          // esercizio_id
+  nome: string;        // da esercizi.nome (nuovo schema GDD)
   categoria_id: string;
-  livello: number;
-  durata_stimata: number;
   completato: boolean;
   risultato: { tempo_secondi: number; accuratezza: number } | null;
 }
@@ -89,13 +88,6 @@ export interface StoricoGiorno {
 
 const CATEGORIE_ORDER = ["memoria", "attenzione", "linguaggio", "esecutive", "visuospaziali"] as const;
 
-const ESERCIZI_POOL: Record<string, string[]> = {
-  memoria:       ["sequence-tap-immagini", "recall-grid-numeri", "memoria-lista-parole", "updating-wm-numeri", "memoria-prosa-narrativi", "sequence-tap-parole", "memoria-lista-parole-semantiche", "sequence-tap-numeri"],
-  attenzione:    ["pasat-light-single", "flanker-frecce", "sart-cifre", "vigilance", "odd-one-out-forme", "odd-one-out-numeri-lettere"],
-  linguaggio:    ["linguaggio-semantic-relatedness", "linguaggio-naming", "verbal-fluency-categoriale", "linguaggio-proverb-completion", "linguaggio-lexical-decision"],
-  esecutive:     ["dccs-light", "sort-it-colore", "task-switching-numeri", "hayling-quotidiano", "pianificazione-tol"],
-  visuospaziali: ["block-design-colori", "mental-rotation-forme", "figure-ground-forme", "figure-ground-oggetti"],
-};
 
 const ICONE_CAT: Record<string, string> = {
   memoria: "brain", attenzione: "target", linguaggio: "chat",
@@ -111,11 +103,6 @@ const NOMI_CAT: Record<string, string> = {
   memoria: "Memoria", attenzione: "Attenzione", linguaggio: "Linguaggio",
   esecutive: "Esecutive", visuospaziali: "Visuospaziali",
 };
-
-function getDayOfYear(): number {
-  const now = new Date();
-  return Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
-}
 
 // ─── Profilo utente ───────────────────────────────────────────────────────────
 
@@ -245,55 +232,109 @@ export async function fetchOrCreateEserciziDelGiorno(userId: string): Promise<Es
     .eq("user_id", userId)
     .eq("data", oggi);
 
-  const rows = (existing && existing.length > 0) ? existing : await createEserciziDelGiorno(supabase, userId, oggi);
+  const rows = (existing && existing.length > 0)
+    ? existing
+    : await createEserciziDelGiornoRegolaaN(supabase, userId, oggi);
 
-  // Recupera i titoli dalla tabella esercizi
+  // Recupera i nomi dalla tabella esercizi (schema nuovo: campo "nome")
   const ids = rows.map((r: { esercizio_id: string }) => r.esercizio_id);
   const { data: info } = await supabase
     .from("esercizi")
-    .select("id, titolo, livello, durata_stimata")
+    .select("id, nome")
     .in("id", ids);
 
-  const infoMap = Object.fromEntries((info ?? []).map((e) => [e.id, e]));
+  const nomiMap = Object.fromEntries((info ?? []).map((e) => [e.id as string, e.nome as string]));
 
   return CATEGORIE_ORDER.map((cat) => {
     const row = rows.find((r: { categoria_id: string }) => r.categoria_id === cat);
     if (!row) return null;
-    const details = infoMap[row.esercizio_id] ?? {};
     return {
       id: row.esercizio_id,
-      titolo: details.titolo ?? row.esercizio_id,
+      nome: nomiMap[row.esercizio_id] ?? row.esercizio_id,
       categoria_id: cat,
-      livello: details.livello ?? 1,
-      durata_stimata: details.durata_stimata ?? 60,
       completato: row.completato ?? false,
       risultato: null,
     } as EserciziDelGiornoItem;
   }).filter(Boolean) as EserciziDelGiornoItem[];
 }
 
-async function createEserciziDelGiorno(
+/**
+ * Crea le 5 assegnazioni giornaliere usando la Regola N del GDD.
+ *
+ * Regola N (docs/gdd/shared/01-session-rules.md):
+ * Un esercizio non può essere riproposto finché non sono stati selezionati
+ * tutti gli altri esercizi dello stesso dominio dopo la sua ultima apparizione.
+ *
+ * Implementazione: per ogni dominio, gli ultimi (N−1) esercizi mostrati formano
+ * l'insieme dei "recenti esclusi". L'esercizio da mostrare è scelto a caso
+ * tra quelli non presenti nei recenti. Se per qualsiasi motivo tutti risultano
+ * recenti (pool ridotto o primo utilizzo), si usa l'intero pool.
+ *
+ * Query: 2 fetch batch invece di 10 query sequenziali (5 domini × 2 tabelle).
+ */
+async function createEserciziDelGiornoRegolaaN(
   supabase: ReturnType<typeof createClient>,
   userId: string,
   oggi: string
-) {
-  const dayOfYear = getDayOfYear();
-  const toInsert = CATEGORIE_ORDER.map((cat, i) => {
-    const pool = ESERCIZI_POOL[cat];
-    return {
-      user_id: userId,
-      esercizio_id: pool[(dayOfYear + i) % pool.length],
-      categoria_id: cat,
-      data: oggi,
-      completato: false,
-    };
+): Promise<Array<{ esercizio_id: string; categoria_id: string; completato: boolean }>> {
+  // Fetch 1: pool attivo per tutti i domini
+  const { data: tuttiEsercizi } = await supabase
+    .from("esercizi")
+    .select("id, categoria_id")
+    .eq("attivo", true)
+    .order("categoria_id", { ascending: true })
+    .order("ordine_in_famiglia", { ascending: true });
+
+  // Fetch 2: storico esercizi_del_giorno per questo utente (ultimi 100 entry)
+  // 100 copre l'intera rotazione anche per il dominio con il pool più grande (~20 esercizi)
+  const { data: history } = await supabase
+    .from("esercizi_del_giorno")
+    .select("esercizio_id, categoria_id")
+    .eq("user_id", userId)
+    .order("data", { ascending: false })
+    .limit(100);
+
+  // Raggruppa per dominio
+  const poolPerDominio: Record<string, string[]> = {};
+  for (const e of (tuttiEsercizi ?? [])) {
+    const cat = e.categoria_id as string;
+    (poolPerDominio[cat] = poolPerDominio[cat] ?? []).push(e.id as string);
+  }
+
+  // La storia per dominio è in ordine data DESC (preservato dal limit globale)
+  const storicoPerDominio: Record<string, string[]> = {};
+  for (const h of (history ?? [])) {
+    const cat = h.categoria_id as string;
+    (storicoPerDominio[cat] = storicoPerDominio[cat] ?? []).push(h.esercizio_id as string);
+  }
+
+  const toInsert = CATEGORIE_ORDER.map((cat) => {
+    const pool = poolPerDominio[cat] ?? [];
+    if (pool.length === 0) {
+      throw new Error(`Nessun esercizio attivo per il dominio "${cat}". Eseguire la migration seed.`);
+    }
+
+    // Regola N: escludi i (pool.length − 1) esercizi mostrati più di recente
+    const nEsclusi = pool.length - 1;
+    const recenti = new Set((storicoPerDominio[cat] ?? []).slice(0, nEsclusi));
+    const eleggibili = pool.filter(id => !recenti.has(id));
+
+    // Fallback: se eleggibili è vuoto (pool cambiato o primo giorno) usa tutto il pool
+    const candidati = eleggibili.length > 0 ? eleggibili : pool;
+    const esercizioId = candidati[Math.floor(Math.random() * candidati.length)];
+
+    return { user_id: userId, esercizio_id: esercizioId, categoria_id: cat, data: oggi, completato: false };
   });
 
   await supabase
     .from("esercizi_del_giorno")
     .upsert(toInsert, { onConflict: "user_id,data,categoria_id" });
 
-  return toInsert.map((t) => ({ esercizio_id: t.esercizio_id, categoria_id: t.categoria_id, completato: false }));
+  return toInsert.map((t) => ({
+    esercizio_id: t.esercizio_id,
+    categoria_id: t.categoria_id,
+    completato: false,
+  }));
 }
 
 export async function marcaEsercizioCompletato(userId: string, esercizioId: string): Promise<void> {
@@ -318,6 +359,58 @@ export async function fetchUserLevels(userId: string): Promise<Record<string, nu
 
   if (!data) return {};
   return Object.fromEntries(data.map((r) => [r.categoria_id as string, r.livello_corrente as number]));
+}
+
+/**
+ * Aggiorna la progressione adattiva dopo una sessione completata.
+ *
+ * Logica: docs/gdd/shared/03-progression.md — valutazione inter-livello.
+ * Chiama calcolaProgressione (funzione pura in lib/progression.ts) e
+ * persiste il nuovo stato in user_levels.
+ *
+ * @param userId              ID dell'utente
+ * @param categoriaId         Slug del dominio cognitivo (es. 'memoria')
+ * @param accuratezzaValutativa - Accuratezza calcolata SOLO sui trial valutativi
+ *   (esclusi i trial bonus). Range 0.0–1.0. Vedi docs/gdd/shared/03-progression.md.
+ */
+export async function aggiornaProgressione(
+  userId: string,
+  categoriaId: string,
+  accuratezzaValutativa: number
+): Promise<{ evento: EventoProgressione; livelloNuovo: number }> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("user_levels")
+    .select("livello_corrente, ultime_accuratezze, sessioni_sotto_60_consecutive")
+    .eq("user_id", userId)
+    .eq("categoria_id", categoriaId)
+    .single();
+
+  if (error || !data) {
+    throw new Error(`user_levels non trovato per userId=${userId} categoria=${categoriaId}`);
+  }
+
+  const stato: UserLevelStato = {
+    livello_corrente: data.livello_corrente as number,
+    ultime_accuratezze: (data.ultime_accuratezze as number[]) ?? [],
+    sessioni_sotto_60_consecutive: (data.sessioni_sotto_60_consecutive as number) ?? 0,
+  };
+
+  const risultato = calcolaProgressione(stato, accuratezzaValutativa);
+
+  await supabase
+    .from("user_levels")
+    .update({
+      livello_corrente: risultato.livello_corrente,
+      ultime_accuratezze: risultato.ultime_accuratezze,
+      sessioni_sotto_60_consecutive: risultato.sessioni_sotto_60_consecutive,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId)
+    .eq("categoria_id", categoriaId);
+
+  return { evento: risultato.evento, livelloNuovo: risultato.livello_corrente };
 }
 
 // ─── Dashboard data (home page) ───────────────────────────────────────────────
@@ -375,10 +468,10 @@ export async function fetchSessioniRecenti(userId: string): Promise<SessioneRece
   const oggi = new Date().toISOString().split("T")[0];
   const ieri = new Date(Date.now() - 86400000).toISOString().split("T")[0];
 
-  // Recupera titoli
+  // Recupera nomi (nuovo schema: campo "nome" invece di "titolo")
   const ids = Array.from(new Set(data.map((s) => s.esercizio_id as string).filter(Boolean)));
-  const { data: eInfo } = await supabase.from("esercizi").select("id, titolo").in("id", ids);
-  const titoli = Object.fromEntries((eInfo ?? []).map((e) => [e.id, e.titolo]));
+  const { data: eInfo } = await supabase.from("esercizi").select("id, nome").in("id", ids);
+  const nomi = Object.fromEntries((eInfo ?? []).map((e) => [e.id as string, e.nome as string]));
 
   return data.map((s, i) => {
     const sessionDate = new Date(s.created_at as string).toISOString().split("T")[0];
@@ -390,7 +483,7 @@ export async function fetchSessioniRecenti(userId: string): Promise<SessioneRece
     const trend: "crescita" | "stabile" | "calo" = score > prevScore ? "crescita" : score < prevScore ? "calo" : "stabile";
 
     return {
-      titolo: titoli[s.esercizio_id as string] ?? (s.esercizio_id as string) ?? "Esercizio",
+      titolo: nomi[s.esercizio_id as string] ?? (s.esercizio_id as string) ?? "Esercizio",
       categoria: NOMI_CAT[s.categoria_id as string] ?? (s.categoria_id as string) ?? "",
       score,
       data: dataStr,

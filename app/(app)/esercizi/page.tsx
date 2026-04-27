@@ -151,7 +151,7 @@ function EserciziPageContent() {
                     className="text-base font-bold leading-snug"
                     style={{ color: esercizioDelGiorno.completato ? "#B0B0C4" : COLORS.inkPrimary }}
                   >
-                    {esercizioDelGiorno.titolo}
+                    {esercizioDelGiorno.nome}
                   </h3>
                   {esercizioDelGiorno.completato && isGuest ? (
                     <Link href="/onboarding/registrati" onClick={(e) => e.stopPropagation()}>
@@ -168,9 +168,9 @@ function EserciziPageContent() {
                   ) : (
                     <div className="flex items-center gap-1 text-xs" style={{ color: COLORS.inkMuted }}>
                       <Timer width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} />
-                      <span>{Math.ceil((esercizioDelGiorno.durata_stimata ?? 60) / 60)} minuti</span>
+                      <span>~2 minuti</span>
                       <span>·</span>
-                      <span>Livello {esercizioDelGiorno.livello}/20</span>
+                      <span>Livello {livelloUtente}/20</span>
                     </div>
                   )}
                 </div>
