@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import type { GameEngineProps } from "@/lib/exercise-types";
+import { GoNogoTaskEngine } from "./families/go-nogo/GoNogoTaskEngine";
 import { FlankerTaskEngine } from "./families/flanker-task/FlankerTaskEngine";
 import { getFlankerLevel } from "./families/flanker-task/levels";
 import { StroopTaskEngine } from "./families/stroop/StroopTaskEngine";
@@ -36,6 +37,12 @@ export interface FamilyEntry {
  * tutti gli id JSON in docs/gdd/shared/07-catalog.md.
  */
 export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
+
+  // ── Famiglia 12: Go/No-Go Cromatico (Modello B — completamento trial) ──────
+  go_nogo_cromatico: {
+    Engine: GoNogoTaskEngine,
+    getSessionDurationMs: () => null,
+  },
 
   // ── Famiglia 15: Stroop Task (Modello A — timer-based) ───────────────────
   stroop_classico: {
@@ -76,7 +83,7 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   // memoria_lista_parole_riconoscimento:   { Engine: MemoriaListaEngine,          getSessionDurationMs: () => null },
   // memoria_lista_immagini_riconoscimento: { Engine: MemoriaListaEngine,          getSessionDurationMs: () => null },
   // sart_numerico:                         { Engine: SartEngine,                  getSessionDurationMs: (l) => getSartLevel(l).sessionDurationMs },
-  // go_nogo_cromatico:                     { Engine: GoNoGoEngine,                getSessionDurationMs: (l) => getGoNoGoLevel(l).sessionDurationMs },
+  // go_nogo_semantico:                      { Engine: GoNogoTaskEngine,            getSessionDurationMs: () => null },
   // go_nogo_semantico:                     { Engine: GoNoGoEngine,                getSessionDurationMs: (l) => getGoNoGoLevel(l).sessionDurationMs },
   // picture_naming:                        { Engine: LinguaggioDenominazioneEngine, getSessionDurationMs: () => null },
   // synonym_antonym_decision:              { Engine: LinguaggioDenominazioneEngine, getSessionDurationMs: () => null },
