@@ -2,6 +2,8 @@ import type { ComponentType } from "react";
 import type { GameEngineProps } from "@/lib/exercise-types";
 import { FlankerTaskEngine } from "./families/flanker-task/FlankerTaskEngine";
 import { getFlankerLevel } from "./families/flanker-task/levels";
+import { StroopTaskEngine } from "./families/stroop/StroopTaskEngine";
+import { getStroopLevel } from "./families/stroop/levels";
 
 /**
  * Entry del registry per una famiglia di esercizi.
@@ -34,6 +36,12 @@ export interface FamilyEntry {
  * tutti gli id JSON in docs/gdd/shared/07-catalog.md.
  */
 export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
+
+  // ── Famiglia 15: Stroop Task (Modello A — timer-based) ───────────────────
+  stroop_classico: {
+    Engine: StroopTaskEngine,
+    getSessionDurationMs: (livello) => getStroopLevel(livello).sessionDurationMs,
+  },
 
   // ── Famiglia 17: Flanker Task (Modello A — timer-based) ──────────────────
   flanker_frecce: {
@@ -70,7 +78,6 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   // sart_numerico:                         { Engine: SartEngine,                  getSessionDurationMs: (l) => getSartLevel(l).sessionDurationMs },
   // go_nogo_cromatico:                     { Engine: GoNoGoEngine,                getSessionDurationMs: (l) => getGoNoGoLevel(l).sessionDurationMs },
   // go_nogo_semantico:                     { Engine: GoNoGoEngine,                getSessionDurationMs: (l) => getGoNoGoLevel(l).sessionDurationMs },
-  // stroop_classico:                       { Engine: StroopEngine,                getSessionDurationMs: (l) => getStroopLevel(l).sessionDurationMs },
   // picture_naming:                        { Engine: LinguaggioDenominazioneEngine, getSessionDurationMs: () => null },
   // synonym_antonym_decision:              { Engine: LinguaggioDenominazioneEngine, getSessionDurationMs: () => null },
   // path_tracing:                          { Engine: PathTracingEngine,           getSessionDurationMs: () => null },
