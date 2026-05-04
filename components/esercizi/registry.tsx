@@ -32,6 +32,7 @@ import { SESSION_TIMER_MS as WCS_TIMER_MS } from "./families/word-chain-switchin
 import { AssociativeMemoryTaskEngine } from "./families/associative-memory/AssociativeMemoryTaskEngine";
 import { MemoriaListaTaskEngine } from "./families/memoria-lista/MemoriaListaTaskEngine";
 import { MemoriaComprensioneTestoTaskEngine } from "./families/memoria-comprensione-testo/MemoriaComprensioneTestoTaskEngine";
+import { PathTracingTaskEngine } from "./families/path-tracing/PathTracingTaskEngine";
 
 // ── Wrapper inline per Recall Grid MBT (discrimina stimulusType) ─────────────
 
@@ -207,6 +208,12 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   },
   memoria_comprensione_inferenziale_mbt: {
     Engine: MemoriaComprensioneTestoTaskEngine,
+    getSessionDurationMs: () => null,
+  },
+
+  // ── Famiglia 22: Path Tracing (Modello B con T.Lim per trial) ───────────────
+  path_tracing: {
+    Engine: PathTracingTaskEngine,
     getSessionDurationMs: () => null,
   },
 
