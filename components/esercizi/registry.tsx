@@ -31,6 +31,7 @@ import { WordChainSwitchingTaskEngine } from "./families/word-chain-switching/Wo
 import { SESSION_TIMER_MS as WCS_TIMER_MS } from "./families/word-chain-switching/levels";
 import { AssociativeMemoryTaskEngine } from "./families/associative-memory/AssociativeMemoryTaskEngine";
 import { MemoriaListaTaskEngine } from "./families/memoria-lista/MemoriaListaTaskEngine";
+import { MemoriaComprensioneTestoTaskEngine } from "./families/memoria-comprensione-testo/MemoriaComprensioneTestoTaskEngine";
 
 // ── Wrapper inline per Recall Grid MBT (discrimina stimulusType) ─────────────
 
@@ -196,6 +197,16 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   // ── Associative Memory (Modello B — trial-based, 3 varianti random) ─────────
   associative_memory: {
     Engine: AssociativeMemoryTaskEngine,
+    getSessionDurationMs: () => null,
+  },
+
+  // ── Famiglia 8: Memoria Comprensione Testo MBT (Modello B, 2 varianti) ──────
+  memoria_comprensione_fattuale_mbt: {
+    Engine: MemoriaComprensioneTestoTaskEngine,
+    getSessionDurationMs: () => null,
+  },
+  memoria_comprensione_inferenziale_mbt: {
+    Engine: MemoriaComprensioneTestoTaskEngine,
     getSessionDurationMs: () => null,
   },
 
