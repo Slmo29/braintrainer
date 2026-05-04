@@ -35,6 +35,8 @@ export function MemoriaListaTaskEngine({
   esercizioId,
 }: GameEngineProps) {
 
+  // rievocazione_immagini usa variante "immagini" ma con foil più numerosi
+  const isRievocazione = esercizioId === "memoria_lista_immagini_rievocazione";
   const variante: MLVariante =
     esercizioId === "memoria_lista_parole_riconoscimento" ? "parole" : "immagini";
 
@@ -61,9 +63,14 @@ export function MemoriaListaTaskEngine({
         ? Math.max(config.nItems, ctx.valoreCorrente)
         : config.nItems;
 
+      // rievocazione: griglia più affollata (nItems × 3, max 24)
+      const nFoil = isRievocazione
+        ? Math.min(nItems * 3, 24)
+        : config.nFoil;
+
       return generaStimoloML(
         nItems,
-        config.nFoil,
+        nFoil,
         variante,
         config.speedMs,
         config.delayMs,
@@ -71,7 +78,7 @@ export function MemoriaListaTaskEngine({
         rngRef.current,
       );
     },
-    [config, variante],
+    [config, variante, isRievocazione],
   );
 
   // ── valutaRisposta (strict: tutti i target, nessun foil) ──────────────────
@@ -163,8 +170,9 @@ export function MemoriaListaTaskEngine({
     ? {
         pagine: [{
           titolo: variante === "immagini" ? "Memorizza le immagini" : "Memorizza le parole",
-          testo:
-            variante === "immagini"
+          testo: isRievocazione
+            ? "Guarda le immagini che appaiono una alla volta. Dopo una breve pausa vedrai una griglia con molte immagini: tocca solo quelle che hai visto prima, poi premi Conferma."
+            : variante === "immagini"
               ? "Guarda le immagini che appaiono una alla volta. Dopo una breve pausa vedrai una griglia: tocca tutte le immagini che hai visto prima, poi premi Conferma."
               : "Leggi le parole che appaiono una alla volta. Dopo una breve pausa vedrai una griglia: tocca tutte le parole che hai visto prima, poi premi Conferma.",
         }],
