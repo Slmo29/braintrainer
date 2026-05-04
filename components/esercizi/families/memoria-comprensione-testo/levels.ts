@@ -34,6 +34,38 @@ export const MCT_LEVELS: readonly MCTLevelConfig[] = [
 export const MCT_MICRO_DELTA    = 1;
 export const MCT_MICRO_MAX_OVER = 2;
 
+// ── Tabella C — Fattuale differito MLT ────────────────────────────────────────
+
+export interface MCTMLTLevelConfig {
+  livello:          number;
+  nFrasi:           number;
+  nDomande:         number;
+  nOpzioni:         number;
+  delayMs:          number;   // delay tra lettura e domande (palla rimbalzante)
+  trialsPerSession: number;
+}
+
+/** Micro-progressione MLT: +15 s di delay per trial bonus (max +30 s). */
+export const MCTMLT_MICRO_DELTA    = 15_000;
+export const MCTMLT_MICRO_MAX_OVER = 2;
+
+export const MCTMLT_LEVELS: readonly MCTMLTLevelConfig[] = [
+  { livello:  1, nFrasi: 3, nDomande: 1, nOpzioni: 3, delayMs:  30_000, trialsPerSession: 3 },
+  { livello:  2, nFrasi: 3, nDomande: 1, nOpzioni: 3, delayMs:  30_000, trialsPerSession: 3 },
+  { livello:  3, nFrasi: 4, nDomande: 1, nOpzioni: 3, delayMs:  30_000, trialsPerSession: 3 },
+  { livello:  4, nFrasi: 4, nDomande: 2, nOpzioni: 3, delayMs:  30_000, trialsPerSession: 3 },
+  { livello:  5, nFrasi: 4, nDomande: 2, nOpzioni: 3, delayMs:  60_000, trialsPerSession: 3 },
+  { livello:  6, nFrasi: 5, nDomande: 2, nOpzioni: 3, delayMs:  60_000, trialsPerSession: 3 },
+  { livello:  7, nFrasi: 5, nDomande: 2, nOpzioni: 4, delayMs:  60_000, trialsPerSession: 3 },
+  { livello:  8, nFrasi: 5, nDomande: 2, nOpzioni: 4, delayMs:  60_000, trialsPerSession: 3 },
+  { livello:  9, nFrasi: 6, nDomande: 2, nOpzioni: 4, delayMs:  90_000, trialsPerSession: 2 },
+  { livello: 10, nFrasi: 6, nDomande: 3, nOpzioni: 4, delayMs:  90_000, trialsPerSession: 2 },
+];
+
+export function getMCTMLTLevel(livello: number): MCTMLTLevelConfig {
+  return MCTMLT_LEVELS[Math.min(10, Math.max(1, livello)) - 1];
+}
+
 export function getMCTLevel(livello: number): MCTLevelConfig {
   return MCT_LEVELS[Math.min(10, Math.max(1, livello)) - 1];
 }

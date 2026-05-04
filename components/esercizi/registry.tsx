@@ -32,6 +32,7 @@ import { SESSION_TIMER_MS as WCS_TIMER_MS } from "./families/word-chain-switchin
 import { AssociativeMemoryTaskEngine } from "./families/associative-memory/AssociativeMemoryTaskEngine";
 import { MemoriaListaTaskEngine } from "./families/memoria-lista/MemoriaListaTaskEngine";
 import { MemoriaComprensioneTestoTaskEngine } from "./families/memoria-comprensione-testo/MemoriaComprensioneTestoTaskEngine";
+import { MemoriaComprensioneTestoMLTTaskEngine } from "./families/memoria-comprensione-testo/MemoriaComprensioneTestoMLTTaskEngine";
 import { PathTracingTaskEngine } from "./families/path-tracing/PathTracingTaskEngine";
 import { HaylingTaskEngine } from "./families/hayling-game/HaylingTaskEngine";
 import { SESSION_TIMER_MS as HAYLING_TIMER_MS } from "./families/hayling-game/levels";
@@ -211,6 +212,10 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   },
   memoria_comprensione_inferenziale_mbt: {
     Engine: MemoriaComprensioneTestoTaskEngine,
+    getSessionDurationMs: () => null,
+  },
+  memoria_comprensione_fattuale_mlt: {
+    Engine: MemoriaComprensioneTestoMLTTaskEngine,
     getSessionDurationMs: () => null,
   },
 
