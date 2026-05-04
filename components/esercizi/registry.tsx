@@ -33,6 +33,8 @@ import { AssociativeMemoryTaskEngine } from "./families/associative-memory/Assoc
 import { MemoriaListaTaskEngine } from "./families/memoria-lista/MemoriaListaTaskEngine";
 import { MemoriaComprensioneTestoTaskEngine } from "./families/memoria-comprensione-testo/MemoriaComprensioneTestoTaskEngine";
 import { PathTracingTaskEngine } from "./families/path-tracing/PathTracingTaskEngine";
+import { HaylingTaskEngine } from "./families/hayling-game/HaylingTaskEngine";
+import { SESSION_TIMER_MS as HAYLING_TIMER_MS } from "./families/hayling-game/levels";
 
 // ── Wrapper inline per Recall Grid MBT (discrimina stimulusType) ─────────────
 
@@ -209,6 +211,16 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   memoria_comprensione_inferenziale_mbt: {
     Engine: MemoriaComprensioneTestoTaskEngine,
     getSessionDurationMs: () => null,
+  },
+
+  // ── Famiglia 5: Hayling Game — 2 varianti (Modello A — timer 90s) ───────────
+  hayling_ab: {
+    Engine: HaylingTaskEngine,
+    getSessionDurationMs: () => HAYLING_TIMER_MS,
+  },
+  hayling_b_only: {
+    Engine: HaylingTaskEngine,
+    getSessionDurationMs: () => HAYLING_TIMER_MS,
   },
 
   // ── Famiglia 22: Path Tracing (Modello B con T.Lim per trial) ───────────────
