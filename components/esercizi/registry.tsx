@@ -12,6 +12,8 @@ import { ODD_ONE_OUT_TIMER_MS } from "./families/odd-one-out/_deroghe";
 import { MemoriaProspetticaTaskEngine } from "./families/memoria-prospettica/MemoriaProspetticaTaskEngine";
 import { SequenceTapTaskEngine } from "./families/sequence-tap/SequenceTapTaskEngine";
 import { SESSION_TIMER_MS as ST_TIMER_MS } from "./families/sequence-tap/levels";
+import { SortItTaskEngine } from "./families/sort-it/SortItTaskEngine";
+import { SESSION_TIMER_MS as SI_TIMER_MS } from "./families/sort-it/levels";
 import { RecallGridMBTTaskEngine } from "./families/recall-grid/RecallGridMBTTaskEngine";
 import { RecallGridMLTTaskEngine } from "./families/recall-grid/RecallGridMLTTaskEngine";
 import { getRecallGridMBTLevel } from "./families/recall-grid/levels";
@@ -109,6 +111,16 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   memoria_prospettica_time_based: {
     Engine: MemoriaProspetticaTaskEngine,
     getSessionDurationMs: () => null,
+  },
+
+  // ── Famiglia 4: Sort It — 2 varianti (Modello A — timer 90s) ────────────────
+  sort_it_percettivo: {
+    Engine: SortItTaskEngine,
+    getSessionDurationMs: () => SI_TIMER_MS,
+  },
+  sort_it_semantico: {
+    Engine: SortItTaskEngine,
+    getSessionDurationMs: () => SI_TIMER_MS,
   },
 
   // ── Famiglia 1: Sequence Tap — 4 varianti (Modello A — timer 90s) ───────────
