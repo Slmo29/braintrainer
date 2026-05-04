@@ -23,6 +23,8 @@ import { CulturaGeneraleTaskEngine } from "./families/conoscenza-generale/Cultur
 import { SESSION_TIMER_MS as CG_TIMER_MS } from "./families/conoscenza-generale/levels";
 import { PasatLightTaskEngine } from "./families/pasat-light/PasatLightTaskEngine";
 import { SESSION_TIMER_MS as PL_TIMER_MS } from "./families/pasat-light/levels";
+import { UpdatingWMTaskEngine } from "./families/updating-wm/UpdatingWMTaskEngine";
+import { SESSION_TIMER_MS as UWM_TIMER_MS } from "./families/updating-wm/levels";
 
 // ── Wrapper inline per Recall Grid MBT (discrimina stimulusType) ─────────────
 
@@ -157,6 +159,20 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   cultura_generale: {
     Engine: CulturaGeneraleTaskEngine,
     getSessionDurationMs: () => CG_TIMER_MS,
+  },
+
+  // ── Famiglia 7: Updating WM — 3 varianti (Modello A — timer 90s) ────────────
+  updating_wm_parole: {
+    Engine: UpdatingWMTaskEngine,
+    getSessionDurationMs: () => UWM_TIMER_MS,
+  },
+  updating_wm_immagini: {
+    Engine: UpdatingWMTaskEngine,
+    getSessionDurationMs: () => UWM_TIMER_MS,
+  },
+  updating_wm_numeri: {
+    Engine: UpdatingWMTaskEngine,
+    getSessionDurationMs: () => UWM_TIMER_MS,
   },
 
   // ── Famiglia 20: Linguaggio e Denominazione (Modello A — timer 90s) ─────────
