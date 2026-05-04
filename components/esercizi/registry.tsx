@@ -21,6 +21,8 @@ import { LinguaggioDenominazioneTaskEngine } from "./families/linguaggio-denomin
 import { SESSION_TIMER_MS as LD_TIMER_MS } from "./families/linguaggio-denominazione/levels";
 import { CulturaGeneraleTaskEngine } from "./families/conoscenza-generale/CulturaGeneraleTaskEngine";
 import { SESSION_TIMER_MS as CG_TIMER_MS } from "./families/conoscenza-generale/levels";
+import { PasatLightTaskEngine } from "./families/pasat-light/PasatLightTaskEngine";
+import { SESSION_TIMER_MS as PL_TIMER_MS } from "./families/pasat-light/levels";
 
 // ── Wrapper inline per Recall Grid MBT (discrimina stimulusType) ─────────────
 
@@ -145,6 +147,12 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
     getSessionDurationMs: () => ST_TIMER_MS,
   },
 
+  // ── Famiglia 6: Pasat Light (Modello A — timer 90s) ─────────────────────────
+  pasat_light_visivo: {
+    Engine: PasatLightTaskEngine,
+    getSessionDurationMs: () => PL_TIMER_MS,
+  },
+
   // ── Famiglia 24: Conoscenza Generale (Modello A — timer 90s) ────────────────
   cultura_generale: {
     Engine: CulturaGeneraleTaskEngine,
@@ -170,7 +178,7 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   // sort_it_semantico:                     { Engine: SortItEngine,                getSessionDurationMs: () => null },
   // hayling_ab:                            { Engine: HaylingGameEngine,           getSessionDurationMs: () => null },
   // hayling_b_only:                        { Engine: HaylingGameEngine,           getSessionDurationMs: () => null },
-  // pasat_light_visivo:                    { Engine: PasatLightEngine,            getSessionDurationMs: (l) => getPasatLevel(l).sessionDurationMs },
+  // pasat_light_visivo: già registrato sopra
   // updating_wm_parole:                    { Engine: UpdatingWmEngine,            getSessionDurationMs: () => null },
   // updating_wm_immagini:                  { Engine: UpdatingWmEngine,            getSessionDurationMs: () => null },
   // updating_wm_numeri:                    { Engine: UpdatingWmEngine,            getSessionDurationMs: () => null },
