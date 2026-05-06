@@ -287,13 +287,14 @@ function PariDispariRender({
 
 function PhaseBadge({ phase }: { phase: Phase | null }) {
   const colors: Record<Phase, string> = {
-    tutorial:      "#8b5cf6",
-    warning:       "#f59e0b",
-    generating:    "#6b7280",
-    presenting:    "#2563eb",
-    feedback:      "#10b981",
-    isi:           "#9ca3af",
-    "session-end": "#1f2937",
+    tutorial:         "#8b5cf6",
+    warning:          "#f59e0b",
+    generating:       "#6b7280",
+    presenting:       "#2563eb",
+    feedback:         "#10b981",
+    isi:              "#9ca3af",
+    "bonus-incoming": "#f59e0b",
+    "session-end":    "#1f2937",
   };
   if (!phase) return <span style={{ color: "#9ca3af" }}>—</span>;
   return (
