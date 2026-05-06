@@ -110,7 +110,7 @@ export function AssociativeMemorySession({
   // ── Render encoding ────────────────────────────────────────────────────────
   if (fase === "encoding") {
     const coppia = stimolo.coppie[encIdx];
-    const isEmoji = (v: string) => [...v].length <= 2 && v.charCodeAt(0) > 127;
+    const isEmoji = (v: string) => Array.from(v).length <= 2 && v.charCodeAt(0) > 127;
     const renderEl = (val: string, tipo: "parola" | "emoji") =>
       tipo === "emoji" || isEmoji(val)
         ? <span style={{ fontSize: "3.5rem", lineHeight: 1 }}>{val}</span>
