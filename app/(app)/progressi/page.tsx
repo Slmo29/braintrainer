@@ -32,7 +32,8 @@ function buildCalendarCells(year: number, month: number): (number | null)[] {
 function getAllCompletatiDates(storico: StoricoGiorno[]): Set<string> {
   const set = new Set<string>();
   for (const g of storico) {
-    if (g.sessioni.length >= 5) set.add(g.data);
+    const categorie = new Set(g.sessioni.map((s) => s.categoria.toLowerCase()));
+    if (categorie.size >= 5) set.add(g.data);
   }
   return set;
 }
