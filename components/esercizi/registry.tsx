@@ -42,10 +42,28 @@ import { OsservatorioStellareTaskEngine } from "./families/osservatorio-stellare
 import { OS_SESSION_TIMER_MS } from "./families/osservatorio-stellare/levels";
 import { PescatoreTaskEngine } from "./families/pescatore/PescatoreTaskEngine";
 import { PESCATORE_SESSION_TIMER_MS } from "./families/pescatore/levels";
-import { CambiaRegolaTaskEngine } from "./families/cambia-regola/CambiaRegolaTaskEngine";
-import { CAMBIA_REGOLA_SESSION_TIMER_MS } from "./families/cambia-regola/levels";
-import { VigileUrbanoTaskEngine } from "./families/vigile-urbano/VigileUrbanoTaskEngine";
-import { VU_SESSION_TIMER_MS } from "./families/vigile-urbano/levels";
+import { VivaioTaskEngine } from "./families/vivaio/VivaioTaskEngine";
+import { VIVAIO_SESSION_TIMER_MS } from "./families/vivaio/levels";
+import { IlPostinoTaskEngine } from "./families/il-postino/IlPostinoTaskEngine";
+import { POSTINO_SESSION_TIMER_MS } from "./families/il-postino/levels";
+import { AnalogoTaskEngine } from "./families/analogo/AnalogoTaskEngine";
+import { SESSION_TIMER_MS as ANALOGO_TIMER_MS } from "./families/analogo/levels";
+import { BanditoreTaskEngine } from "./families/banditore/BanditoreTaskEngine";
+import { BANDITORE_SESSION_TIMER_MS } from "./families/banditore/levels";
+import { MaestroBottegaTaskEngine } from "./families/maestro-bottega/MaestroBottegaTaskEngine";
+import { MAESTRO_SESSION_TIMER_MS } from "./families/maestro-bottega/levels";
+import { CorrettoreBozzeTaskEngine } from "./families/correttore-bozze/CorrettoreBozzeTaskEngine";
+import { CORRETTORE_SESSION_TIMER_MS } from "./families/correttore-bozze/levels";
+import { FalegnameTaskEngine } from "./families/falegname/FalegnameTaskEngine";
+import { SESSION_TIMER_MS as FALEGNAME_TIMER_MS } from "./families/falegname/levels";
+import { CasalingaTaskEngine } from "./families/la-casalinga/CasalingaTaskEngine";
+import { IlMosaicistaTaskEngine } from "./families/il-mosaicista/IlMosaicistaTaskEngine";
+import { MOSAICISTA_SESSION_TIMER_MS } from "./families/il-mosaicista/levels";
+import { CartografoTaskEngine } from "./families/cartografo/CartografoTaskEngine";
+import { RestauratoreTaskEngine } from "./families/il-restauratore/RestauratoreTaskEngine";
+import { PostinoBorgoTaskEngine } from "./families/postino-borgo/PostinoBorgoTaskEngine";
+import { IlNaturalistaTaskEngine } from "./families/il-naturalista/IlNaturalistaTaskEngine";
+import { NATURALISTA_SESSION_TIMER_MS } from "./families/il-naturalista/levels";
 
 // ── Wrapper inline per Recall Grid MBT (discrimina stimulusType) ─────────────
 
@@ -252,16 +270,76 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
     getSessionDurationMs: () => PESCATORE_SESSION_TIMER_MS,
   },
 
-  // ── Cambia Regola (flessibilità attentiva · task switching, Modello A — timer 60s) ─
-  cambia_regola: {
-    Engine: CambiaRegolaTaskEngine,
-    getSessionDurationMs: () => CAMBIA_REGOLA_SESSION_TIMER_MS,
+  // ── Il Vivaio (esecutive · task switching inferenziale, Modello A — timer 60s) ─
+  il_vivaio: {
+    Engine: VivaioTaskEngine,
+    getSessionDurationMs: () => VIVAIO_SESSION_TIMER_MS,
   },
 
-  // ── Il Vigile Urbano (attenzione spaziale · multi-focus, Modello A — timer 60s) ─
-  vigile_urbano: {
-    Engine: VigileUrbanoTaskEngine,
-    getSessionDurationMs: () => VU_SESSION_TIMER_MS,
+  // ── Il Postino (linguaggio · completamento proverbi e modi di dire, Modello A — timer 60s) ─
+  il_postino: {
+    Engine: IlPostinoTaskEngine,
+    getSessionDurationMs: () => POSTINO_SESSION_TIMER_MS,
+  },
+
+  // ── L'Analogo (linguaggio · analogie verbali illustrate, Modello B trial-based) ─
+  analogo: {
+    Engine: AnalogoTaskEngine,
+    getSessionDurationMs: () => ANALOGO_TIMER_MS,
+  },
+
+  // ── Il Banditore (linguaggio · categorizzazione semantica rapida, Modello A — timer 60s) ─
+  banditore: {
+    Engine: BanditoreTaskEngine,
+    getSessionDurationMs: () => BANDITORE_SESSION_TIMER_MS,
+  },
+
+  // ── Il Maestro di Bottega (linguaggio · denominazione su definizione, Modello A — timer 60s) ─
+  maestro_bottega: {
+    Engine: MaestroBottegaTaskEngine,
+    getSessionDurationMs: () => MAESTRO_SESSION_TIMER_MS,
+  },
+
+  // ── Il Correttore di Bozze (linguaggio · rilevamento errori lessicali/sintattici, Modello A — timer 60s) ─
+  correttore_bozze: {
+    Engine: CorrettoreBozzeTaskEngine,
+    getSessionDurationMs: () => CORRETTORE_SESSION_TIMER_MS,
+  },
+
+  // ── Il Mosaicista (visuospaziale · drag-and-drop frammenti mosaico, Modello A — timer 90s) ─
+  il_mosaicista: {
+    Engine: IlMosaicistaTaskEngine,
+    getSessionDurationMs: () => MOSAICISTA_SESSION_TIMER_MS,
+  },
+
+  // ── Il Naturalista (visuospaziale · ricerca visiva figura/sfondo, Modello A — timer 90s) ─
+  il_naturalista: {
+    Engine: IlNaturalistaTaskEngine,
+    getSessionDurationMs: () => NATURALISTA_SESSION_TIMER_MS,
+  },
+
+  // ── Il Postino del Borgo (visuospaziale · path planning con vincoli, Modello B — 2 trial, no timer) ─
+  postino_borgo: {
+    Engine: PostinoBorgoTaskEngine,
+    getSessionDurationMs: () => null,
+  },
+
+  // ── Il Falegname (visuospaziale · rotazione mentale, Modello A — timer 60s) ─
+  il_falegname: {
+    Engine: FalegnameTaskEngine,
+    getSessionDurationMs: () => FALEGNAME_TIMER_MS,
+  },
+
+  // ── La Casalinga (visuospaziale · change detection in scena, Modello B — 5 trial, no timer) ─
+  la_casalinga: {
+    Engine: CasalingaTaskEngine,
+    getSessionDurationMs: () => null,
+  },
+
+  // ── Il Restauratore (visuospaziale · find the differences su dipinti, Modello B — 3 trial, no timer) ─
+  il_restauratore: {
+    Engine: RestauratoreTaskEngine,
+    getSessionDurationMs: () => null,
   },
 
   // ── Rilevamento del Cambiamento (Change Detection, Modello A — timer 90s) ──
@@ -273,6 +351,12 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   // ── Famiglia 22: Path Tracing (Modello B con T.Lim per trial) ───────────────
   path_tracing: {
     Engine: PathTracingTaskEngine,
+    getSessionDurationMs: () => null,
+  },
+
+  // ── Il Cartografo (visuospaziale · navigazione mentale, Modello B 3 trial) ─
+  cartografo: {
+    Engine: CartografoTaskEngine,
     getSessionDurationMs: () => null,
   },
 

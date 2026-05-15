@@ -114,7 +114,7 @@ export async function createUserProfile({
 }) {
   const supabase = createClient();
   const { error } = await supabase.from("users").upsert({
-    id: userId, nome, telefono, email: email || null,
+    id: userId, nome, telefono: telefono || null, email: email || null,
     canale_notifica, orario_notifica: orario_notifica || "09:00",
     consenso_notifiche, current_streak: 0, last_activity_date: null,
   });
