@@ -290,24 +290,6 @@ export default function EsercizioPage() {
   }, [userId, esercizio, livelloDaGiocare, streak, lastActivityDate, medaglie, eserciziFattiOggi,
       eserciziDelGiorno, setUser, aggiungiMedaglia, marcaEsercizioDelGiornoCompletato]);
 
-  // ── handleRigioca ────────────────────────────────────────────────────────────
-  const handleRigioca = useCallback(() => {
-    // tempoScaduto, onCompleteFiredRef, timerIdRef vengono resettati da effect C.
-    // mountedRef NON viene resettato qui (guard anti-unmount, non anti-rigioca).
-    // livelloPrec resta invariato: il warning del prossimo round confronta il livello
-    // effettivamente giocato l'ultima volta vs il livello attuale (livelloDaGiocare).
-    setLivelloDaGiocare(livelloNuovo ?? livelloDaGiocare);
-    setScoreSessione(0);
-    setAccSessione(0);
-    setDurataSessione(0);
-    setMetricheSessione(null);
-    setEventoProgr(null);
-    setLivelloNuovo(null);
-    setStreakNuovo(null);
-    setNuoveMedaglie([]);
-    setStato("intro");
-  }, [livelloNuovo, livelloDaGiocare]);
-
   // ── Early returns ────────────────────────────────────────────────────────────
   if (stato === "loading") {
     return (
@@ -497,10 +479,28 @@ export default function EsercizioPage() {
               )}
 
               <div className="flex flex-col gap-3">
-                <Btn size="lg" onClick={handleRigioca}>Gioca ancora</Btn>
-                <Link href="/esercizi">
-                  <Btn variant="outline" size="lg" className="w-full">Torna agli esercizi</Btn>
-                </Link>
+                {(() => {
+                  const prossimo = eserciziDelGiorno.find(
+                    (e) => !e.completato && e.id !== esercizio!.id,
+                  );
+                  if (prossimo) {
+                    return (
+                      <>
+                        <Btn size="lg" onClick={() => router.push(`/esercizi/${prossimo.id}`)}>
+                          Prossimo: {prossimo.nome}
+                        </Btn>
+                        <Link href="/esercizi">
+                          <Btn variant="outline" size="lg" className="w-full">Torna agli esercizi</Btn>
+                        </Link>
+                      </>
+                    );
+                  }
+                  return (
+                    <Link href="/esercizi">
+                      <Btn size="lg" className="w-full">Torna agli esercizi</Btn>
+                    </Link>
+                  );
+                })()}
               </div>
             </div>
           );

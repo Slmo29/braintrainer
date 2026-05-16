@@ -787,6 +787,30 @@ export async function fetchEsercizioById(
 }
 
 /**
+ * Restituisce tutti gli esercizi attivi appartenenti a un dominio, ordinati
+ * per ordine_in_famiglia. Usata dalla libreria esercizi per popolare la lista
+ * "Altri esercizi" della tab corrente.
+ */
+export async function fetchEserciziAttiviPerCategoria(
+  categoriaId: string,
+): Promise<Array<{ id: string; nome: string; categoria_id: string; session_timer_sec: number | null }>> {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("esercizi")
+    .select("id, nome, categoria_id, session_timer_sec")
+    .eq("categoria_id", categoriaId)
+    .eq("attivo", true)
+    .order("ordine_in_famiglia", { ascending: true });
+
+  return (data ?? []).map((e) => ({
+    id: e.id as string,
+    nome: e.nome as string,
+    categoria_id: e.categoria_id as string,
+    session_timer_sec: (e.session_timer_sec as number | null) ?? null,
+  }));
+}
+
+/**
  * Conta le sessioni completate dall'utente per questo esercizio.
  * Usata da page.tsx per calcolare mostraTutorial = (count === 0).
  * Include anche sessioni storiche pre-migration (livello NULL):

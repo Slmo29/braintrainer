@@ -5,12 +5,20 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Card from "@/components/ui/card";
-import { mockEsercizi, mockCategorie } from "@/lib/mock-data";
+import { mockCategorie } from "@/lib/mock-data";
 import { CATEGORIA_COLORS, COLORS } from "@/lib/design-tokens";
 import { AppIcon } from "@/lib/icons";
 import { Timer, Lock, Check } from "iconoir-react";
 import { useUserStore } from "@/lib/store";
 import { PausaAttivaModal } from "@/components/ui/pausa-attiva-modal";
+import { fetchEserciziAttiviPerCategoria } from "@/lib/sync";
+
+type EsercizioLibreria = {
+  id: string;
+  nome: string;
+  categoria_id: string;
+  session_timer_sec: number | null;
+};
 
 const LIMITE_ESERCIZI_GIORNO = 5;
 
@@ -44,12 +52,22 @@ function EserciziPageContent() {
   const giornalieriIds = new Set(eserciziDelGiorno.map((e) => e.id));
   const tuttiGiornalieriCompletati = eserciziDelGiorno.length > 0 && eserciziDelGiorno.every((e) => e.completato);
 
-  const ESERCIZI_NASCOSTI = new Set(["mental-rotation-oggetti-3d"]);
+  const [eserciziLibreria, setEserciziLibreria] = useState<Record<string, EsercizioLibreria[]>>({});
+  const [caricamentoLibreria, setCaricamentoLibreria] = useState(false);
 
-  const eserciziFiltrati = mockEsercizi
-    .filter((e) => e.categoria_id === tab)
-    .filter((e) => !ESERCIZI_NASCOSTI.has(e.id))
-    .filter((e) => isGuest || e.livello <= livelloUtente)
+  useEffect(() => {
+    if (eserciziLibreria[tab]) return;
+    let annullato = false;
+    setCaricamentoLibreria(true);
+    fetchEserciziAttiviPerCategoria(tab).then((data) => {
+      if (annullato) return;
+      setEserciziLibreria((prev) => ({ ...prev, [tab]: data }));
+      setCaricamentoLibreria(false);
+    });
+    return () => { annullato = true; };
+  }, [tab, eserciziLibreria]);
+
+  const eserciziFiltrati = (eserciziLibreria[tab] ?? [])
     .filter((e) => e.id !== esercizioDelGiorno?.id);
 
   function formatTempo(sec: number) {
@@ -58,9 +76,9 @@ function EserciziPageContent() {
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
 
-  function isLocked(livello: number): boolean {
-    if (isGuest) return livello > 1;
-    return false; // registrato vede solo esercizi già sbloccati, tutti accessibili
+  function isLockedGuest(): boolean {
+    // Guest: tutti gli esercizi extra sono bloccati (richiede registrazione).
+    return isGuest;
   }
 
   function handleClickEsercizio(id: string, locked: boolean) {
@@ -170,7 +188,7 @@ function EserciziPageContent() {
                       <Timer width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} />
                       <span>~2 minuti</span>
                       <span>·</span>
-                      <span>Livello {livelloUtente}/20</span>
+                      <span>Livello {livelloUtente}/10</span>
                     </div>
                   )}
                 </div>
@@ -198,12 +216,21 @@ function EserciziPageContent() {
             Altri esercizi
           </p>
         )}
+        {caricamentoLibreria && (eserciziLibreria[tab] ?? []).length === 0 && (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-8 h-8 rounded-full border-4 animate-spin"
+              style={{ borderColor: `${COLORS.primary}40`, borderTopColor: COLORS.primary }} />
+          </div>
+        )}
         {eserciziFiltrati.map((esercizio) => {
           const cat = mockCategorie.find((c) => c.id === esercizio.categoria_id);
           const cc = cat ? CATEGORIA_COLORS[cat.id] : null;
-          const lockedGuest = isLocked(esercizio.livello);
+          const lockedGuest = isLockedGuest();
           const lockedGiornaliero = !isGuest && !giornalieriIds.has(esercizio.id as never) && !tuttiGiornalieriCompletati;
           const locked = lockedGuest || lockedGiornaliero;
+          const durataMin = esercizio.session_timer_sec
+            ? Math.max(1, Math.round(esercizio.session_timer_sec / 60))
+            : 2;
 
           return (
             <button
@@ -224,12 +251,12 @@ function EserciziPageContent() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className={`text-base font-bold leading-snug ${locked ? "opacity-40" : ""}`} style={{ color: locked ? COLORS.inkMuted : COLORS.inkPrimary }}>{esercizio.titolo}</h3>
+                    <h3 className={`text-base font-bold leading-snug ${locked ? "opacity-40" : ""}`} style={{ color: locked ? COLORS.inkMuted : COLORS.inkPrimary }}>{esercizio.nome}</h3>
                     <div className={`flex items-center gap-1 text-xs ${locked ? "opacity-40" : ""}`} style={{ color: COLORS.inkMuted }}>
                       <Timer width={14} height={14} strokeWidth={1.5} color={COLORS.inkMuted} />
-                      <span>{Math.ceil((esercizio.durata_stimata ?? 60) / 60)} minuti</span>
+                      <span>~{durataMin} {durataMin === 1 ? "minuto" : "minuti"}</span>
                       <span>·</span>
-                      <span>Livello {esercizio.livello}/20</span>
+                      <span>Livello {livelloUtente}/10</span>
                     </div>
                     {lockedGuest && (
                       <span className="inline-flex items-center gap-1 text-xs font-bold mt-1 underline" style={{ color: COLORS.primary, textDecorationColor: COLORS.primary }}>

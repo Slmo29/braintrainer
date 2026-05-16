@@ -48,8 +48,6 @@ import { IlPostinoTaskEngine } from "./families/il-postino/IlPostinoTaskEngine";
 import { POSTINO_SESSION_TIMER_MS } from "./families/il-postino/levels";
 import { AnalogoTaskEngine } from "./families/analogo/AnalogoTaskEngine";
 import { SESSION_TIMER_MS as ANALOGO_TIMER_MS } from "./families/analogo/levels";
-import { BanditoreTaskEngine } from "./families/banditore/BanditoreTaskEngine";
-import { BANDITORE_SESSION_TIMER_MS } from "./families/banditore/levels";
 import { MaestroBottegaTaskEngine } from "./families/maestro-bottega/MaestroBottegaTaskEngine";
 import { MAESTRO_SESSION_TIMER_MS } from "./families/maestro-bottega/levels";
 import { CorrettoreBozzeTaskEngine } from "./families/correttore-bozze/CorrettoreBozzeTaskEngine";
@@ -286,12 +284,6 @@ export const ENGINE_REGISTRY: Record<string, FamilyEntry> = {
   analogo: {
     Engine: AnalogoTaskEngine,
     getSessionDurationMs: () => ANALOGO_TIMER_MS,
-  },
-
-  // ── Il Banditore (linguaggio · categorizzazione semantica rapida, Modello A — timer 60s) ─
-  banditore: {
-    Engine: BanditoreTaskEngine,
-    getSessionDurationMs: () => BANDITORE_SESSION_TIMER_MS,
   },
 
   // ── Il Maestro di Bottega (linguaggio · denominazione su definizione, Modello A — timer 60s) ─
